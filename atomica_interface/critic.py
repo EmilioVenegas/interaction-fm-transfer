@@ -179,7 +179,9 @@ def lambda_schedule(t_int: torch.Tensor, T: int, max_weight: float,
             and 0 above it; ``constant`` applies it everywhere (for ablation).
         cutoff: fraction of T above which the critic is switched off.
     """
-    frac = t_int.float() / T
+    # A single-complex batch leaves `t_int` 0-dim; keep the result indexable so
+    # callers can align it with a per-sample loss without special-casing.
+    frac = torch.atleast_1d(t_int).float() / T
     if mode == "constant":
         return torch.full_like(frac, max_weight)
     if mode == "cutoff":

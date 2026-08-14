@@ -497,6 +497,21 @@ class LigandPocketDDPM(pl.LightningModule):
         info['log_pN'] = log_pN.mean(0)
         return nll, info
 
+    def on_save_checkpoint(self, checkpoint):
+        """Keep the frozen ATOMICA critic out of the checkpoint.
+
+        The critic never trains, and its weights are already on disk as the
+        pretrained ATOMICA checkpoint. Saving them made a critic-arm checkpoint
+        35 MB against the control's 5.6 MB, and left the two arms' checkpoints
+        holding different key sets for no reason -- the sampler does not build a
+        critic at all, so those keys are dead weight it has to ignore.
+        """
+        state = checkpoint.get('state_dict')
+        if state is not None:
+            for key in [k for k in state if k.startswith('critic.')]:
+                del state[key]
+        return checkpoint
+
     def critic_term(self, data, ligand, pocket, xh_lig_hat, xh_pocket, t_int):
         """lambda(t) * d( ATOMICA(pocket, x0_hat), ATOMICA(pocket, x_true) ).
 
@@ -515,8 +530,16 @@ class LigandPocketDDPM(pl.LightningModule):
         """
         from atomica_interface.critic import lambda_schedule
 
-        weights = lambda_schedule(t_int, self.T, self.critic_weight,
-                                  mode=self.critic_schedule, cutoff=self.critic_cutoff)
+        # `t_int` arrives squeezed, so a batch holding exactly ONE complex makes
+        # it 0-dim and every subsequent index raises. That is not a rare edge
+        # case: the train split has 83,921 complexes, an odd number, so at
+        # batch_size 2 the last batch of every epoch is a singleton -- which
+        # killed the first full critic run at the epoch boundary, ~2,599 steps
+        # into a 3,000-step budget, while the control (which never enters this
+        # function) ran to completion.
+        weights = torch.atleast_1d(
+            lambda_schedule(t_int, self.T, self.critic_weight,
+                            mode=self.critic_schedule, cutoff=self.critic_cutoff))
 
         # Coordinates come back in the DDPM's normalised, centre-of-mass-free
         # frame; ATOMICA needs angstrom. The centring itself is harmless because

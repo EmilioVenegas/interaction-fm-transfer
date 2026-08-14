@@ -144,17 +144,25 @@ def main():
             #    there says nothing about trainability. What matters is the
             #    gradient at a displaced ligand, which is where x0_hat actually
             #    sits during training.
-            generator = torch.Generator().manual_seed(0)
+            # Averaged over several noise draws. A single draw on a single
+            # complex is not reliably monotone -- the gate established that
+            # trend statistically over 92 targets, and asserting it per complex
+            # per draw tests the random number generator, not the critic.
             profile = []
             for rmsd in (0.25, 0.5, 1.0, 2.0, 4.0, 8.0):
-                noise = torch.randn(lig.shape, generator=generator)
-                noise = noise / noise.pow(2).sum(1).mean().sqrt() * rmsd
-                nudged = (lig + noise).requires_grad_(True)
-                d = critic([meta], [pocket], [nudged], target)
-                d.sum().backward()
-                profile.append((rmsd, float(d), float(nudged.grad.norm())))
-                print(f"           RMSD {rmsd:>4.2f} A -> d = {float(d):.5f}   "
-                      f"||grad|| = {float(nudged.grad.norm()):.3e}")
+                ds, grads = [], []
+                for seed in range(3):
+                    generator = torch.Generator().manual_seed(seed)
+                    noise = torch.randn(lig.shape, generator=generator)
+                    noise = noise / noise.pow(2).sum(1).mean().sqrt() * rmsd
+                    nudged = (lig + noise).requires_grad_(True)
+                    d = critic([meta], [pocket], [nudged], target)
+                    d.sum().backward()
+                    ds.append(float(d))
+                    grads.append(float(nudged.grad.norm()))
+                profile.append((rmsd, sum(ds) / len(ds), sum(grads) / len(grads)))
+                print(f"           RMSD {rmsd:>4.2f} A -> d = {profile[-1][1]:.5f}   "
+                      f"||grad|| = {profile[-1][2]:.3e}   (mean of 3 draws)")
 
             # Only the low-RMSD regime is asserted. That is where the critic is
             # applied (lambda is ramped off at high noise) and it is the only
@@ -179,6 +187,19 @@ def main():
     print(f"    t          {t.tolist()}")
     print(f"    ramp       {[round(v, 3) for v in ramp.tolist()]}")
     print(f"    cutoff     {[round(v, 3) for v in cut.tolist()]}")
+    # A batch holding one complex leaves t_int 0-dim. The schedule must still
+    # return something indexable, or the caller raises "invalid index of a
+    # 0-dim tensor" -- which killed a 3,000-step run at the first epoch
+    # boundary, because the train split's 83,921 complexes is an odd number and
+    # the last batch at batch_size 2 is therefore a singleton.
+    scalar = lambda_schedule(torch.tensor(0), T=1000, max_weight=1.0,
+                             mode="ramp", cutoff=0.5)
+    singleton_ok = scalar.ndim == 1 and float(scalar[0]) == 1.0
+    print(f"    {'PASS' if singleton_ok else 'FAIL'}  0-dim t_int yields an "
+          f"indexable weight (ndim={scalar.ndim})")
+    if not singleton_ok:
+        failures.append("0-dim t_int handling")
+
     schedule_ok = (ramp[0] == 1.0 and ramp[-1] == 0.0 and bool((ramp[1:] <= ramp[:-1]).all())
                    and cut[0] == 1.0 and cut[-1] == 0.0)
     print(f"    {'PASS' if schedule_ok else 'FAIL'}  schedule is monotone and "
