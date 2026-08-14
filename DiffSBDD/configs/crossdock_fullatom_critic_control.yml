@@ -1,4 +1,12 @@
-run_name: 'critic_graph_cosine_r0'
+# CONTROL ARM for crossdock_fullatom_critic.yml.
+#
+# Byte-identical to that config except `critic_params.enabled: False` and the
+# run name. Same checkpoint, same LoRA, same frozen backbone, same step budget,
+# same monitored metric -- so the two arms differ ONLY in whether the ATOMICA
+# critic term is in the loss, and any difference between them is attributable
+# to the objective rather than to capacity, data or training length.
+#
+run_name: 'critic_control_r0'
 logdir: './my_logs'
 wandb_params:
   mode: 'online'
@@ -74,7 +82,7 @@ loss_params:
   clamp_lj: 3.0
 
 critic_params:
-  enabled: True
+  enabled: False
   model_config: 'ATOMICA/pretrain/pretrain_model_config.json'
   model_weights: 'ATOMICA/pretrain/pretrain_model_weights.pt'
   # 'cosine' on the graph representation: the featurization probe found the

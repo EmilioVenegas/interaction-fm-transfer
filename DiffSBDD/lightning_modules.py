@@ -471,6 +471,13 @@ class LigandPocketDDPM(pl.LightningModule):
             nll = nll + weighted_lj_potential
             info['weighted_lj'] = weighted_lj_potential.mean(0)
 
+        # The diffusion objective on its own, before any auxiliary term. This is
+        # the only loss comparable ACROSS arms: `loss/val` includes the critic
+        # term when the critic is on, so monitoring it would early-stop the two
+        # arms at different points and select their "best" checkpoints on
+        # different quantities. Logged unconditionally so both arms report it.
+        info['loss_diffusion'] = nll.detach().mean(0)
+
         # Add the ATOMICA critic term
         if self.critic is not None and xh_pocket is not None \
                 and data.get('critic_meta') is not None:

@@ -132,20 +132,27 @@ if __name__ == "__main__":
         save_dir=args.logdir, name=args.run_name, version='')
     logger = [wandb_logger, csv_logger]
 
+    # Which validation metric selects the best checkpoint and drives early
+    # stopping. Defaults to loss/val for backward compatibility, but any run
+    # that adds an auxiliary term must monitor something comparable across arms
+    # -- loss/val includes the critic term when the critic is on, so the critic
+    # arm and its control would be judged on different quantities.
+    monitor_metric = getattr(args, 'monitor', 'loss/val')
     checkpoint_callback = pl.callbacks.ModelCheckpoint(
         dirpath=Path(out_dir, 'checkpoints'),
         filename="best-model-epoch={epoch:02d}",
-        monitor="loss/val",
+        monitor=monitor_metric,
         save_top_k=1,
         save_last=True,
         mode="min",
     )
 
+    print(f"Monitoring '{monitor_metric}' for checkpointing and early stopping.")
     early_stop_patience = getattr(args, 'early_stop_patience', 0)
     callbacks = [checkpoint_callback]
     if early_stop_patience > 0:
         callbacks.append(pl.callbacks.EarlyStopping(
-            monitor="loss/val",
+            monitor=monitor_metric,
             patience=early_stop_patience,
             mode="min",
             verbose=True,
