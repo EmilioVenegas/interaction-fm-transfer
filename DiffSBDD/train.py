@@ -114,7 +114,7 @@ if __name__ == "__main__":
         critic_params=getattr(args, 'critic_params', None)
     )
 
-    logger = pl.loggers.WandbLogger(
+    wandb_logger = pl.loggers.WandbLogger(
         save_dir=args.logdir,
         project='ligand-pocket-ddpm',
         group=args.wandb_params.group,
@@ -124,6 +124,13 @@ if __name__ == "__main__":
         entity=args.wandb_params.entity,
         mode=args.wandb_params.mode,
     )
+    # A plain metrics.csv alongside wandb. An offline wandb run keeps its
+    # history in a binary datastore that has to be synced before anything can
+    # read it, which makes "did the auxiliary loss actually fall" needlessly
+    # awkward to answer on a machine with no wandb credentials.
+    csv_logger = pl.loggers.CSVLogger(
+        save_dir=args.logdir, name=args.run_name, version='')
+    logger = [wandb_logger, csv_logger]
 
     checkpoint_callback = pl.callbacks.ModelCheckpoint(
         dirpath=Path(out_dir, 'checkpoints'),
@@ -144,6 +151,20 @@ if __name__ == "__main__":
             verbose=True,
         ))
 
+    # Optional short-run controls. `max_steps` in particular makes a calibration
+    # run possible at all: with batch_size 2 one epoch over the 83,921-complex
+    # train split is ~42,000 batches, so 'train for a few hundred steps and see
+    # whether the auxiliary loss actually falls' is otherwise unexpressible.
+    trainer_kwargs = {}
+    if getattr(args, 'max_steps', None):
+        trainer_kwargs['max_steps'] = args.max_steps
+    if getattr(args, 'limit_val_batches', None):
+        trainer_kwargs['limit_val_batches'] = args.limit_val_batches
+    if getattr(args, 'val_check_interval', None):
+        trainer_kwargs['val_check_interval'] = args.val_check_interval
+    if getattr(args, 'accumulate_grad_batches', None):
+        trainer_kwargs['accumulate_grad_batches'] = args.accumulate_grad_batches
+
     trainer = pl.Trainer(
         max_epochs=args.n_epochs,
         logger=logger,
@@ -152,7 +173,8 @@ if __name__ == "__main__":
         num_sanity_val_steps=args.num_sanity_val_steps,
         accelerator='gpu', devices=args.gpus,
         strategy=('ddp' if args.gpus > 1 else 'auto'),
-        precision=args.precision
+        precision=args.precision,
+        **trainer_kwargs
     )
 
     if ckpt_path is not None:

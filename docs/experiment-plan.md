@@ -304,6 +304,62 @@ raw AUROC of any variant (0.949). It scores 0.923 with *random* weights, so almo
 all of that is architecture and geometry rather than learned interaction
 chemistry — see the gotcha below.
 
+### How the critic arm is configured, and why the adapter is off
+
+`DiffSBDD/configs/crossdock_fullatom_critic.yml`. Three decisions that are not
+tuning choices:
+
+**The ATOMICA conditioning adapter is disabled** (`egnn_params.atomica_nf: null`).
+It cannot be used with the current cache. The adapter takes
+`pocket_atomica_embeddings` as an *input*, which it needs at sampling time too;
+since `dd1c756` those are read off a two-segment encoding whose segment 1 is the
+reference ligand, so feeding them in conditions generation on the answer.
+Recomputing them pocket-only at sampling would avoid the leak but is both a
+train/test mismatch and degenerate (Phase 3b, cosine 1.0000 between pockets).
+`scripts/run_baseline.py` now refuses to do it without an explicit override.
+This costs nothing: the critic's whole advantage is that ATOMICA is a *teacher*,
+so the sampler is plain DiffSBDD and needs no ATOMICA at all.
+
+**LoRA is what trains** (`DiffSBDD/equivariant_diffusion/lora.py`, rank 8 on the
+EGNN's edge/node/coord MLPs). With the adapter gone and the backbone frozen,
+nothing would have gradients. `lora_rank` had been sitting in the configs since
+the arm-D runs with nothing reading it — arm D was full backbone fine-tuning
+under a misleading name — so this is a real implementation. `B` initialises to
+zero, so the model reproduces the checkpoint exactly at step 0. On this config:
+82,120 trainable parameters of 1,087,538 (7.55%).
+
+**`max_weight` is calibrated by gradient norm**
+(`scripts/calibrate_critic_weight.py`), not by comparing losses. The loss ratio
+is misleading — cosine distance on a 32-d representation is order 1e-2 against a
+diffusion nll of order 1e0 — so the critic looks negligible at a weight that
+would dominate. What matters is the gradient each term contributes, **and it
+depends on what is trainable**:
+
+| trainable path | ‖grad‖ diffusion | ‖grad‖ critic (λ=1) | median ratio | λ for 10% |
+|---|---|---|---|---|
+| arm B architecture, ATOMICA adapter | 3.53e-04 | 4.21e-06 | 108 | 53.6 |
+| **this arm, LoRA on the EGNN** | **1.61e-01** | **9.79e-02** | **1.9** | **0.688** |
+
+LoRA sits in the layers that directly determine `x̂₀`, so the critic's gradient
+arrives far more directly than through an input-side adapter. Carrying the first
+figure over would have made the critic ~240× too strong. **Recompute this
+whenever the trainable set changes.**
+
+Two further traps found while wiring it up, both silent:
+
+- Wrapping a layer in LoRA renames `edge_mlp.0.weight` to
+  `edge_mlp.0.base.weight`, and `train.py` loads with `strict=False` — so a
+  pre-LoRA checkpoint would have been skipped while the loader reported success,
+  training from scratch under the name of a fine-tune. `LoRALinear` now
+  registers a load hook that rewrites the old names.
+- The critic config inherited arm B's architecture (`joint_nf` 128, `hidden_nf`
+  256, `n_layers` 6), which does not fit
+  `checkpoints/crossdocked_fullatom_cond.ckpt` (32 / 128 / 5).
+- `accumulate_grad_batches` and `val_check_interval` appear in every config but
+  were **never passed to the Trainer**. Arms B/C/D therefore trained at
+  effective batch 2, not the 32 their configs claim. `train.py` now passes them,
+  along with an optional `max_steps`.
+
 ### Secondary — conditioning on `x̂₀` during sampling
 
 Only if the critic shows signal. At step *t*, form the two-segment complex from the
