@@ -105,9 +105,15 @@ egnn_params:
   edge_cutoff_pocket: 5.0
   edge_cutoff_interaction: 5.0
   reflection_equivariant: False
-  joint_nf: 128
-  hidden_nf: 256
-  n_layers: 6
+  # These MUST match checkpoints/crossdocked_fullatom_cond.ckpt, which this arm
+  # fine-tunes from. Arm B's config used joint_nf 128 / hidden_nf 256 /
+  # n_layers 6, which does not load into that checkpoint -- every layer comes
+  # back a size mismatch. train.py --resume merges the checkpoint's own
+  # egnn_params and would correct this silently; they are written out here so
+  # the config is self-consistent on its own.
+  joint_nf: 32
+  hidden_nf: 128
+  n_layers: 5
   attention: True
   tanh: True
   norm_constant: 1

@@ -63,6 +63,24 @@ class LoRALinear(nn.Module):
         # product is zero at initialisation and the wrapped model reproduces the
         # checkpoint exactly on the first forward pass.
         nn.init.kaiming_uniform_(self.lora_A, a=math.sqrt(5))
+        self._register_load_state_dict_pre_hook(self._accept_unwrapped, with_module=False)
+
+    def _accept_unwrapped(self, state_dict, prefix, local_metadata, strict,
+                          missing_keys, unexpected_keys, error_msgs):
+        """Load a checkpoint written before this layer was wrapped.
+
+        Wrapping renames `…edge_mlp.0.weight` to `…edge_mlp.0.base.weight`, so a
+        pretrained checkpoint no longer matches. Under `strict=False` that fails
+        *silently*: the layer keeps its random initialisation while the loader
+        reports success, and the run trains from scratch while claiming to
+        fine-tune. This hook rewrites the old names to the wrapped ones so a
+        pre-LoRA checkpoint loads correctly.
+        """
+        for suffix in ("weight", "bias"):
+            old = prefix + suffix
+            new = prefix + "base." + suffix
+            if old in state_dict and new not in state_dict:
+                state_dict[new] = state_dict.pop(old)
 
     def forward(self, x):
         update = self.dropout(x) @ self.lora_A.t() @ self.lora_B.t()

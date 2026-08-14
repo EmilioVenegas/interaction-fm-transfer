@@ -103,6 +103,30 @@ base_grads = [p.grad for name, p in model.named_parameters()
               if "base" in name and p.grad is not None]
 check("frozen base weights receive no gradient", not base_grads)
 
+print("\n--- loading a pre-LoRA checkpoint ---")
+# The failure this guards against is silent: wrapping renames weight ->
+# base.weight, so under strict=False the pretrained layer would keep its random
+# init while the loader reports success.
+plain = toy_model()
+with torch.no_grad():
+    for p_ in plain.parameters():
+        p_.normal_()
+pretrained_sd = plain.state_dict()
+check("checkpoint uses unwrapped names",
+      any(k.endswith("edge_mlp.0.weight") for k in pretrained_sd))
+
+wrapped = toy_model()
+inject_lora(wrapped, rank=4, alpha=8.0)
+missing, unexpected = wrapped.load_state_dict(pretrained_sd, strict=False)
+check("no unexpected keys", not unexpected, f"   ({unexpected[:2]})")
+check("only lora factors missing",
+      all("lora_" in k for k in missing), f"   ({len(missing)} missing)")
+
+probe = torch.randn(3, 8)
+check("wrapped model reproduces the pretrained one",
+      torch.allclose(wrapped.edge_mlp(probe), plain.edge_mlp(probe), atol=1e-6),
+      f"   (max diff {float((wrapped.edge_mlp(probe) - plain.edge_mlp(probe)).abs().max()):.2e})")
+
 print("\n--- rank validation ---")
 try:
     LoRALinear(nn.Linear(4, 4), rank=0)
