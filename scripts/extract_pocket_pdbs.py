@@ -66,7 +66,20 @@ AA_VOCAB = {
     16: 'SER', 17: 'THR', 18: 'TRP', 19: 'TYR', 20: 'VAL',
 }
 
+# Protein heavy atoms only -- this is the vocabulary a CrossDocked pocket uses.
 ELEMENT_SYMBOL = {6: 'C', 7: 'N', 8: 'O', 16: 'S'}
+
+# Ligands are NOT restricted to that set. Over a 3,000-complex sample the LMDB
+# ligands also contain F, P, Cl, Se, Br and I; falling back to 'C' for those
+# silently rewrote every halogen and phosphorus as carbon in the reference SDFs.
+LIGAND_ELEMENT_SYMBOL = {
+    1: 'H', 5: 'B', 6: 'C', 7: 'N', 8: 'O', 9: 'F', 11: 'Na', 12: 'Mg',
+    15: 'P', 16: 'S', 17: 'Cl', 19: 'K', 20: 'Ca', 25: 'Mn', 26: 'Fe',
+    27: 'Co', 29: 'Cu', 30: 'Zn', 34: 'Se', 35: 'Br', 53: 'I',
+}
+
+# SDF bond-block codes, matching ATOMICA's ID2BOND.
+_BOND_ORDER = {1: 1, 2: 2, 3: 3, 4: 4}
 
 
 def _pdb_atom_line(serial, atom_name, res_name, chain, res_seq, x, y, z, element):
@@ -127,19 +140,53 @@ def write_pocket_pdb(data, out_path: Path):
 
 
 def write_ligand_sdf(data, out_path: Path):
-    """Write the reference ligand as a minimal SDF (atom positions only)."""
+    """Write the reference ligand as an SDF with real elements and real bonds.
+
+    The earlier version emitted an empty bond block and typed atoms through
+    ELEMENT_SYMBOL, which covers only C/N/O/S and falls back to carbon --
+    so every F, P, Cl, Se, Br and I in a reference ligand became a carbon, and
+    the molecule had no connectivity at all. A bond-less, mistyped ligand
+    scores nothing like the real one: the native ligand of complex_000001
+    redocked into its own pocket at -0.9 kcal/mol.
+
+    The bond table is already in the record, so there is no reason to omit it.
+    """
     lig_pos  = data['ligand_pos']
     lig_elem = data['ligand_element']
+    bond_index = data.get('ligand_bond_index')
+    bond_type  = data.get('ligand_bond_type')
     if isinstance(lig_pos, torch.Tensor):
         lig_pos  = lig_pos.numpy()
         lig_elem = lig_elem.numpy()
+    if isinstance(bond_index, torch.Tensor):
+        bond_index = bond_index.numpy()
+    if isinstance(bond_type, torch.Tensor):
+        bond_type = bond_type.numpy()
+
+    # The record stores each bond twice, once per direction; SDF wants it once.
+    bonds = []
+    if bond_index is not None and bond_type is not None and len(bond_index):
+        bond_index = np.asarray(bond_index)
+        seen = set()
+        for k in range(bond_index.shape[1]):
+            a, b = int(bond_index[0, k]), int(bond_index[1, k])
+            if a == b:
+                continue
+            key = (min(a, b), max(a, b))
+            if key in seen:
+                continue
+            seen.add(key)
+            bonds.append((key[0], key[1], _BOND_ORDER.get(int(bond_type[k]), 1)))
 
     n = len(lig_pos)
-    lines = ['\n', '     RDKit\n', '\n',
-             f'{n:3d}  0  0  0  0  0  0  0  0  0999 V2000\n']
+    lines = ['\n', '     RDKit          3D\n', '\n',
+             f'{n:3d}{len(bonds):3d}  0  0  0  0  0  0  0  0999 V2000\n']
     for pos, el in zip(lig_pos, lig_elem):
-        sym = ELEMENT_SYMBOL.get(int(el), 'C')
+        sym = LIGAND_ELEMENT_SYMBOL.get(int(el), 'C')
         lines.append(f'{pos[0]:10.4f}{pos[1]:10.4f}{pos[2]:10.4f} {sym:<3s} 0  0  0  0  0  0  0  0  0  0  0  0\n')
+    for a, b, order in bonds:
+        # SDF atom indices are 1-based.
+        lines.append(f'{a + 1:3d}{b + 1:3d}{order:3d}  0\n')
     lines.append('M  END\n$$$$\n')
     out_path.write_text(''.join(lines))
 
