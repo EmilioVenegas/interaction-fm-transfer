@@ -70,27 +70,32 @@ critic_params:
   distance: 'cosine'
   level: 'graph'
   # lambda at t = 0, calibrated by gradient norm rather than by loss magnitude
-  # (scripts/calibrate_critic_weight.py, 48 batches over the val split).
+  # (scripts/calibrate_critic_weight.py, 48 batches over val, THIS config).
   # Comparing the two *losses* answers the wrong question: cosine distance on a
   # 32-d representation is order 1e-2 while the diffusion nll is order 1e0, so
   # the loss ratio makes the critic look negligible at a lambda that would
   # actually dominate. What matters is the gradient each term contributes:
   #
-  #     ||grad|| diffusion              3.53e-04
-  #     ||grad|| critic (at lambda=1)   4.21e-06
+  #     ||grad|| diffusion              1.61e-01
+  #     ||grad|| critic (at lambda=1)   9.79e-02      median ratio 1.9
   #
-  # and the ratio varies strongly with noise level -- the critic's gradient is
-  # relatively WEAKEST at low t, which is exactly where the ramp weights it
-  # most, because x0_hat is already close there:
+  # The ratio depends strongly on WHAT IS TRAINABLE, so this must be recomputed
+  # whenever that changes. Measured against arm B's architecture with the
+  # ATOMICA adapter as the trainable path, the same script gave a ratio of 108
+  # and suggested lambda 50; with LoRA on the EGNN's feature and coordinate
+  # MLPs the critic's gradient reaches the parameters far more directly and the
+  # ratio falls to 1.9. Carrying the old figure over would have made the critic
+  # roughly 240x too strong.
   #
-  #     t/T <= 0.25    median ratio 482   -> lambda 53.6 for a 10% share
-  #     0.25-0.5       median ratio 108   -> lambda 12
-  #     t/T > 0.5      median ratio  64   -> lambda 7.1
+  # By noise level (the ramp concentrates the term in the low band):
+  #     t/T <= 0.25    median ratio 6.2   -> lambda 0.688 for a 10% share
+  #     0.25-0.5       median ratio 1.6   -> lambda 0.175
+  #     t/T > 0.5      median ratio 2.0   -> lambda 0.218
   #
-  # 50 gives the critic roughly a tenth of the gradient in the band it is
-  # applied to. Sweep 10-100 and confirm critic_distance/train actually falls;
+  # 0.7 gives the critic roughly a tenth of the gradient in the band it is
+  # applied to. Sweep 0.2-2.0 and confirm critic_distance/train actually falls;
   # these are norms at the initial parameters, not a claim about dynamics.
-  max_weight: 50.0
+  max_weight: 0.7
   # 'ramp' decays linearly to zero at cutoff*T; 'cutoff' is a hard switch;
   # 'constant' is the ablation. Restricting to low t is not a tuning choice --
   # ATOMICA has never seen a half-formed ligand, and the round-trip test shows
