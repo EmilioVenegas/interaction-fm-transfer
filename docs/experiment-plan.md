@@ -15,7 +15,7 @@ from. Numbers in this document were re-verified against the repository on
 | **2** | Does a pose scorer generalise to unseen systems? | **resolved: no** — `results/pose_scorer/README.md` |
 | **3** | Interaction hotspot fields | **resolved: no** — `results/hotspot/README.md` |
 | **3b** | Does correcting the pocket block vocabulary restore conditioning? | **resolved: no** — `results/featurization_probe/README.md` |
-| **4** | **ATOMICA as a training-time critic** | **current work** — implemented and gated; `results/critic_gate/README.md`. Not yet trained |
+| **4** | **ATOMICA as a training-time critic** | **current work** — implemented, gated and calibrated; trains stably over 300 steps. `results/critic_gate/`, `results/critic_calibration/`. No full run or evaluation yet |
 | 5 | Conditioning on the partially-denoised ligand, low-noise steps only | after 4, and only if 4 shows signal |
 | 6 | ATOMICA as a selector over generated molecules | blocked by 2 |
 | 7 | Distillation to a pocket-only encoder | dead — see Phase 3b |
@@ -552,31 +552,38 @@ A shift of −4.83 heavy atoms — the size confound the expert filter introduce
 
 ## Immediate next steps
 
-Steps 1–5 of the previous revision are **done**: the preprocessing run finished
-(83,921 train complexes), val/test were rebuilt target-disjoint (499 / 544 over
-41 / 44 targets), `size_distribution.npy` was regenerated on correct axes,
-`fix/expert-preprocessing-featurization` was merged into `main`, and the critic
-loss is implemented and gated. What remains:
+Everything up to and including the trainability check is **done**: preprocessing
+finished (83,921 train complexes), val/test were rebuilt target-disjoint
+(499 / 544 over 41 / 44 targets, zero targets shared with train),
+`size_distribution.npy` was regenerated on correct axes,
+`fix/expert-preprocessing-featurization` was merged, critic targets were cached
+for all 84,964 complexes with zero failures, the critic loss was implemented and
+gated, `max_weight` was calibrated by gradient norm, and a 300-step run shows
+`critic_distance/val` falling 58.9% with the diffusion loss flat
+(`results/critic_calibration/README.md`).
 
-1. **Finish `scripts/add_critic_targets.py` over all three splits.** It caches
-   `ATOMICA(pocket, x_true)` and the coordinate-independent record structure that
-   makes the encoder differentiable. Complexes without those fields still train,
-   just without the critic term. ~0.16 s/complex on GPU.
-2. **Sweep `critic_params.max_weight` on a short run.** At the config's 1.0 the
-   critic is ~0.3% of the objective (measured: distance 0.0114, weighted 0.0070,
-   diffusion nll 0.60) and will not move the model. Expect 1e1–1e2. The thing to
-   watch is `critic_distance/train` actually falling, not the total loss.
-3. **Fine-tune from `my_logs/` with the backbone frozen**, and run a
-   `critic_params.enabled: False` arm from the same checkpoint as its control.
-   Because ATOMICA is frozen and appears only in the loss, both arms sample
-   identically and any difference is attributable to the objective.
-4. **Evaluate with pocket-aware metrics** — `scripts/cross_dock_specificity.py`,
-   see below. Needs `smina` (`conda install -c conda-forge smina`), which is not
-   installed, and regenerated receptor PDBs (next item).
-5. **Regenerate `data/receptor_pdbs/`** with `scripts/extract_pocket_pdbs.py`.
-   The 100 pockets there are named `complex_000001…` against the *old,
-   contaminated* test set. Their ids no longer correspond to the rebuilt `test/`,
-   so cross-docking would silently score molecules against the wrong pockets.
+What remains:
+
+1. **Run the two arms full length.** The critic arm
+   (`DiffSBDD/configs/crossdock_fullatom_critic.yml`) and its control, the same
+   config with `critic_params.enabled: False`, both resumed from
+   `checkpoints/crossdocked_fullatom_cond.ckpt`. Because ATOMICA is frozen and
+   appears only in the loss, the two sample identically and any difference is
+   attributable to the objective. Use `--resume`; `WANDB_MODE=offline` if there
+   are no wandb credentials.
+2. **Generate from both arms** with `scripts/run_baseline.py --no_atomica`
+   (the adapter is off in this arm, and the guard refuses the leaky path).
+3. **Evaluate per pocket** with `scripts/cross_dock_specificity.py` against
+   `data/receptor_pdbs_test_v2/` — 44 pockets over 44 distinct targets, with
+   `pocket_targets.json` so decoys are drawn from other proteins. `smina` is
+   installed at `~/.conda/envs/smina/bin/smina`; export `SMINA_BIN` to point at
+   it. Retain QED/SA/Lipinski as guardrails only.
+4. **Optionally sweep `max_weight`** over 0.2–2.0. 0.7 is the 10%-gradient-share
+   figure and trains stably, but nothing has established it is *optimal*.
+
+Note `data/receptor_pdbs/` still holds the 100 pockets extracted against the
+**old, contaminated** test set; `data/receptor_pdbs_test_v2/` is the current one.
+The old directory is kept, not deleted, but must not be used for evaluation.
 
 ### Environment (resolved)
 
@@ -593,6 +600,12 @@ Installed into the conda env under a constraints file pinning `torch==2.0.1` and
 `seaborn`, `PyYAML`, and `setuptools<81` — lightning imports `pkg_resources`,
 which setuptools 81+ drops, and the env had no setuptools at all. Verified after
 install: torch 2.0.1 / CUDA 11.8 available, `torch_scatter` 2.1.2 working.
+
+`smina` lives in its own environment, `~/.conda/envs/smina` (conda-forge,
+smina 2020.12.10). It is kept separate deliberately: nothing about docking needs
+to share an environment with the CUDA build, and a solver run against
+`atomica-interface` is a risk with no upside. Point `SMINA_BIN` at
+`~/.conda/envs/smina/bin/smina`.
 
 Note `DiffSBDD/environment.yaml` pins `pytorch-lightning=1.8.4`, which is stale —
 the existing checkpoints were written by 2.5.5.
