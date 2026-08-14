@@ -114,6 +114,15 @@ if __name__ == "__main__":
         critic_params=getattr(args, 'critic_params', None)
     )
 
+    # Passing `mode` explicitly overrides the WANDB_MODE environment variable,
+    # so `WANDB_MODE=offline python train.py ...` was silently ignored and the
+    # run died on "No API key configured" before a single step. The env var now
+    # wins when set, which is what anyone setting it expects; without it the
+    # config still decides.
+    wandb_mode = os.environ.get('WANDB_MODE') or args.wandb_params.mode
+    if wandb_mode != args.wandb_params.mode:
+        print(f"wandb mode '{args.wandb_params.mode}' overridden by "
+              f"WANDB_MODE={wandb_mode}")
     wandb_logger = pl.loggers.WandbLogger(
         save_dir=args.logdir,
         project='ligand-pocket-ddpm',
@@ -122,7 +131,7 @@ if __name__ == "__main__":
         id=args.run_name,
         resume='allow' if args.resume is not None else False,
         entity=args.wandb_params.entity,
-        mode=args.wandb_params.mode,
+        mode=wandb_mode,
     )
     # A plain metrics.csv alongside wandb. An offline wandb run keeps its
     # history in a binary datastore that has to be synced before anything can
