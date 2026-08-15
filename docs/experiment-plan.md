@@ -15,7 +15,7 @@ from. Numbers in this document were re-verified against the repository on
 | **2** | Does a pose scorer generalise to unseen systems? | **resolved: no** — `results/pose_scorer/README.md` |
 | **3** | Interaction hotspot fields | **resolved: no** — `results/hotspot/README.md` |
 | **3b** | Does correcting the pocket block vocabulary restore conditioning? | **resolved: no** — `results/featurization_probe/README.md` |
-| **4** | **ATOMICA as a training-time critic** | **current work** — both arms trained 3,000 steps. Critic term falls 37.9%; diffusion loss ~0.6% worse, not significant. `results/critic_arms/README.md`. Generation and pocket-aware evaluation still to do |
+| **4** | **ATOMICA as a training-time critic** | **current work** — trained, generated and evaluated. Critic term falls 37.9%; pocket specificity **not** improved (−0.158 ± 0.111, 18/44 pockets, p = 0.299). `results/critic_arms/`, `results/specificity/`. Seed replicates in progress |
 | 5 | Conditioning on the partially-denoised ligand, low-noise steps only | after 4, and only if 4 shows signal |
 | 6 | ATOMICA as a selector over generated molecules | blocked by 2 |
 | 7 | Distillation to a pocket-only encoder | dead — see Phase 3b |
@@ -556,38 +556,41 @@ A shift of −4.83 heavy atoms — the size confound the expert filter introduce
 
 ## Immediate next steps
 
-Everything up to and including the trainability check is **done**: preprocessing
-finished (83,921 train complexes), val/test were rebuilt target-disjoint
-(499 / 544 over 41 / 44 targets, zero targets shared with train),
-`size_distribution.npy` was regenerated on correct axes,
-`fix/expert-preprocessing-featurization` was merged, critic targets were cached
-for all 84,964 complexes with zero failures, the critic loss was implemented and
-gated, `max_weight` was calibrated by gradient norm, and a 300-step run shows
-`critic_distance/val` falling 58.9% with the diffusion loss flat
-(`results/critic_calibration/README.md`).
+Everything through the first full critic-vs-control comparison is **done**.
+Preprocessing (83,921 train complexes), target-disjoint val/test (499 / 544 over
+41 / 44 targets, zero shared with train), a regenerated size histogram, critic
+targets cached for all 84,964 complexes, the critic loss implemented, gated and
+calibrated, both arms trained 3,000 steps, molecules generated, and cross-docking
+specificity measured. Results: `results/critic_gate/`,
+`results/critic_calibration/`, `results/critic_arms/`, `results/specificity/`.
+
+**Headline: the critic reduces its own objective by 37.9% and that does not
+transfer to pocket specificity** (−0.158 ± 0.111 kcal/mol against the control,
+18/44 pockets, p = 0.299). It made molecules that dock slightly better
+*everywhere* rather than better in their own pocket — the failure mode the
+specificity metric exists to detect.
 
 What remains:
 
-1. **Run the two arms full length.** The critic arm
-   (`DiffSBDD/configs/crossdock_fullatom_critic.yml`) and its control, the same
-   config with `critic_params.enabled: False`, both resumed from
-   `checkpoints/crossdocked_fullatom_cond.ckpt`. Because ATOMICA is frozen and
-   appears only in the loss, the two sample identically and any difference is
-   attributable to the objective. Use `--resume`; `WANDB_MODE=offline` if there
-   are no wandb credentials.
-2. **Generate from both arms** with `scripts/run_baseline.py --no_atomica`
-   (the adapter is off in this arm, and the guard refuses the leaky path).
-3. **Evaluate per pocket** with `scripts/cross_dock_specificity.py` against
-   `data/receptor_pdbs_test_v2/` — 44 pockets over 44 distinct targets, with
-   `pocket_targets.json` so decoys are drawn from other proteins. `smina` is
-   installed at `~/.conda/envs/smina/bin/smina`; export `SMINA_BIN` to point at
-   it. Retain QED/SA/Lipinski as guardrails only.
-4. **Optionally sweep `max_weight`** over 0.2–2.0. 0.7 is the 10%-gradient-share
-   figure and trains stably, but nothing has established it is *optimal*.
-
-Note `data/receptor_pdbs/` still holds the 100 pockets extracted against the
-**old, contaminated** test set; `data/receptor_pdbs_test_v2/` is the current one.
-The old directory is kept, not deleted, but must not be used for evaluation.
+1. **Finish the seed replicates.** Four runs (`critic|control` × `r1|r2`) were
+   launched because one seed per arm cannot resolve a −0.158 difference. r0 and
+   r1 are complete, r2 was in flight at the time of writing; the driver is
+   `run_seeds.sh`-style sequential, configs are
+   `DiffSBDD/configs/crossdock_fullatom_critic{,_control}_r{1,2}.yml`.
+   **Preliminary and important:** the +0.6% diffusion-loss penalty seen at r0
+   does *not* reproduce at r1 (critic 0.46177 vs control 0.46186, sign flipped),
+   so that penalty was seed noise.
+2. **Generate and cross-dock r1 and r2**, exactly as r0 was done, to turn the
+   single-seed specificity null into a three-seed comparison. ~7 h generation,
+   ~5 h docking. Keep every parameter identical to r0 (100 molecules per pocket,
+   20 docked, 3 decoy pockets, exhaustiveness 8) — an inconsistency here would
+   confound the comparison the seeds exist to make.
+3. **Then decide the direction.** If the specificity lean holds across three
+   seeds, this is a fourth well-controlled negative and the sharpest of them:
+   not "the representation does not transfer" but "reducing its distance is not
+   the same as fitting the pocket better". If it washes out, the honest claim is
+   that the critic is neutral at λ = 0.7, and the untested alternative is a much
+   larger λ — its gradient share was deliberately set to only ~10% at low noise.
 
 ### Environment (resolved)
 
