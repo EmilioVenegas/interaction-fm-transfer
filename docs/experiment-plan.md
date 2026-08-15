@@ -15,7 +15,7 @@ from. Numbers in this document were re-verified against the repository on
 | **2** | Does a pose scorer generalise to unseen systems? | **resolved: no** — `results/pose_scorer/README.md` |
 | **3** | Interaction hotspot fields | **resolved: no** — `results/hotspot/README.md` |
 | **3b** | Does correcting the pocket block vocabulary restore conditioning? | **resolved: no** — `results/featurization_probe/README.md` |
-| **4** | **ATOMICA as a training-time critic** | **current work** — implemented, gated and calibrated; trains stably over 300 steps. `results/critic_gate/`, `results/critic_calibration/`. No full run or evaluation yet |
+| **4** | **ATOMICA as a training-time critic** | **current work** — both arms trained 3,000 steps. Critic term falls 37.9%; diffusion loss ~0.6% worse, not significant. `results/critic_arms/README.md`. Generation and pocket-aware evaluation still to do |
 | 5 | Conditioning on the partially-denoised ligand, low-noise steps only | after 4, and only if 4 shows signal |
 | 6 | ATOMICA as a selector over generated molecules | blocked by 2 |
 | 7 | Distillation to a pocket-only encoder | dead — see Phase 3b |
