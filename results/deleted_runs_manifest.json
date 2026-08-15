@@ -1,0 +1,164 @@
+{
+  "condB_static_t_r0": {
+    "best-model-epoch=epoch=00.ckpt": {
+      "epoch": 0,
+      "global_step": 800,
+      "pl_version": "2.5.5",
+      "n_tensors": 137,
+      "hidden_nf": 128,
+      "n_layers": 5,
+      "atomica_nf": 32,
+      "lora_rank": 0,
+      "timestep_adaptive": false,
+      "freeze_backbone": true,
+      "datadir": "data/processed_expert_atomica"
+    },
+    "best-model-epoch=epoch=11.ckpt": {
+      "epoch": 11,
+      "global_step": 135117,
+      "pl_version": "2.5.5",
+      "n_tensors": 137,
+      "hidden_nf": 128,
+      "n_layers": 5,
+      "atomica_nf": 32,
+      "lora_rank": 0,
+      "timestep_adaptive": false,
+      "freeze_backbone": true,
+      "datadir": "data/processed_expert_atomica"
+    },
+    "last-v1.ckpt": {
+      "epoch": 33,
+      "global_step": 395998,
+      "pl_version": "2.5.5",
+      "n_tensors": 137,
+      "hidden_nf": 128,
+      "n_layers": 5,
+      "atomica_nf": 32,
+      "lora_rank": 0,
+      "timestep_adaptive": false,
+      "freeze_backbone": true,
+      "datadir": "data/processed_expert_atomica"
+    },
+    "last.ckpt": {
+      "epoch": 0,
+      "global_step": 2000,
+      "pl_version": "2.5.5",
+      "n_tensors": 137,
+      "hidden_nf": 128,
+      "n_layers": 5,
+      "atomica_nf": 32,
+      "lora_rank": 0,
+      "timestep_adaptive": false,
+      "freeze_backbone": true,
+      "datadir": "data/processed_expert_atomica"
+    }
+  },
+  "condC_timestep_adaptive_r0": {
+    "best-model-epoch=epoch=00.ckpt": {
+      "epoch": 0,
+      "global_step": 11647,
+      "pl_version": "2.5.5",
+      "n_tensors": 141,
+      "hidden_nf": 128,
+      "n_layers": 5,
+      "atomica_nf": 32,
+      "lora_rank": 0,
+      "timestep_adaptive": true,
+      "freeze_backbone": true,
+      "datadir": "data/processed_expert_atomica"
+    },
+    "best-model-epoch=epoch=11.ckpt": {
+      "epoch": 11,
+      "global_step": 139764,
+      "pl_version": "2.5.5",
+      "n_tensors": 137,
+      "hidden_nf": 128,
+      "n_layers": 5,
+      "atomica_nf": 32,
+      "lora_rank": 0,
+      "timestep_adaptive": false,
+      "freeze_backbone": true,
+      "datadir": "data/processed_expert_atomica"
+    },
+    "last-v1.ckpt": {
+      "epoch": 0,
+      "global_step": 11647,
+      "pl_version": "2.5.5",
+      "n_tensors": 141,
+      "hidden_nf": 128,
+      "n_layers": 5,
+      "atomica_nf": 32,
+      "lora_rank": 0,
+      "timestep_adaptive": true,
+      "freeze_backbone": true,
+      "datadir": "data/processed_expert_atomica"
+    },
+    "last.ckpt": {
+      "epoch": 11,
+      "global_step": 139764,
+      "pl_version": "2.5.5",
+      "n_tensors": 137,
+      "hidden_nf": 128,
+      "n_layers": 5,
+      "atomica_nf": 32,
+      "lora_rank": 0,
+      "timestep_adaptive": false,
+      "freeze_backbone": true,
+      "datadir": "data/processed_expert_atomica"
+    }
+  },
+  "condD_lora_r0": {
+    "best-model-epoch=epoch=09.ckpt": {
+      "epoch": 9,
+      "global_step": 116470,
+      "pl_version": "2.5.5",
+      "n_tensors": 141,
+      "hidden_nf": 128,
+      "n_layers": 5,
+      "atomica_nf": 32,
+      "lora_rank": 8,
+      "timestep_adaptive": true,
+      "freeze_backbone": false,
+      "datadir": "data/processed_expert_atomica"
+    },
+    "best-model-epoch=epoch=11.ckpt": {
+      "epoch": 11,
+      "global_step": 139764,
+      "pl_version": "2.5.5",
+      "n_tensors": 141,
+      "hidden_nf": 128,
+      "n_layers": 5,
+      "atomica_nf": 32,
+      "lora_rank": 0,
+      "timestep_adaptive": true,
+      "freeze_backbone": false,
+      "datadir": "data/processed_expert_atomica"
+    },
+    "last-v1.ckpt": {
+      "epoch": 14,
+      "global_step": 174705,
+      "pl_version": "2.5.5",
+      "n_tensors": 141,
+      "hidden_nf": 128,
+      "n_layers": 5,
+      "atomica_nf": 32,
+      "lora_rank": 8,
+      "timestep_adaptive": true,
+      "freeze_backbone": false,
+      "datadir": "data/processed_expert_atomica"
+    },
+    "last.ckpt": {
+      "epoch": 16,
+      "global_step": 197999,
+      "pl_version": "2.5.5",
+      "n_tensors": 141,
+      "hidden_nf": 128,
+      "n_layers": 5,
+      "atomica_nf": 32,
+      "lora_rank": 0,
+      "timestep_adaptive": true,
+      "freeze_backbone": false,
+      "datadir": "data/processed_expert_atomica"
+    }
+  }
+}

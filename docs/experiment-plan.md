@@ -393,12 +393,16 @@ Read this section before touching anything under `data/`.
 ### CrossDocked was never lost
 
 An earlier revision of this plan, and some commit messages, claimed the CrossDocked
-LMDB had been lost. **That was wrong.** Both files are on disk:
+LMDB had been lost. **That was wrong.** The one the pipeline uses is on disk:
 
 | File | Size | Entries |
 |---|---:|---:|
-| `data/crossdocked_pocket10_processed.lmdb` | 7.29 GB | 164,814 |
-| `data/crossdocked_filtered.lmdb` | 6.23 GB | 132,469 |
+| `data/crossdocked_pocket10_processed.lmdb` | 6.8 GB | 164,814 |
+
+`data/crossdocked_filtered.lmdb` (132,469 entries) and its split were **deleted**
+during cleanup: no code read them -- every preprocessing path goes through the
+pocket10 LMDB above -- and they cost 5.9 GB. Re-derivable from the upstream
+CrossDocked2020 release if ever needed.
 
 ### Split integrity
 
