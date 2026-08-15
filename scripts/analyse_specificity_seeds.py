@@ -190,6 +190,37 @@ def main():
               "everywhere, which is the failure mode this metric exists to "
               "detect.")
 
+        # The noise floor, measured rather than assumed. Two runs of the SAME
+        # arm differ only by seed, so the spread of specificity(arm, seed i) -
+        # specificity(arm, seed j) is what this pipeline produces when nothing
+        # about the method has changed. If the critic-vs-control difference is
+        # not larger than that, there is nothing to explain.
+        print("\nNoise floor: the same arm at two different seeds, paired per "
+              "pocket.\nNothing differs but the seed, so this is what the "
+              "pipeline produces from no effect at all.\n")
+        print(f"  {'comparison':<28}{'mean delta':>12}{'sem':>8}{'improved':>11}")
+        print("  " + "-" * 59)
+        floor = []
+        for arm in ("critic", "control"):
+            column = f"{arm}_spec"
+            wide = delta[delta["pocket"].isin(complete)].pivot(
+                index="pocket", columns="seed", values=column)
+            for i, seed_a in enumerate(seeds):
+                for seed_b in seeds[i + 1:]:
+                    diff = (wide[seed_b] - wide[seed_a]).values
+                    floor.append(diff.mean())
+                    print(f"  {f'{arm} {seed_b} - {seed_a}':<28}"
+                          f"{diff.mean():>+12.3f}"
+                          f"{diff.std(ddof=1) / np.sqrt(len(diff)):>8.3f}"
+                          f"{f'{(diff > 0).sum()}/{len(diff)}':>11}")
+        if floor:
+            print(f"\n  Same-arm differences span "
+                  f"{min(floor):+.3f} to {max(floor):+.3f}; the critic-vs-control "
+                  f"difference is {d.mean():+.3f}.")
+            if abs(d.mean()) <= max(abs(np.array(floor))):
+                print("  It is inside the noise floor, so it is not evidence of "
+                      "an effect.")
+
         n = len(d)
         n_improved = int((d > 0).sum())
         verdict = next((name for name, rule, _ in DECISION_RULES
