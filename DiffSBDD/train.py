@@ -84,6 +84,17 @@ if __name__ == "__main__":
 
     args = merge_args_and_yaml(args, config)
 
+    # Explicit seeding, without which "run this at three seeds" is not
+    # expressible: nothing here seeded torch, numpy or the dataloader workers,
+    # so replicates differed only by whatever nondeterminism happened to be
+    # present and could not be reproduced. Seeds are what separate a real
+    # difference between arms from run-to-run noise, which is the open question
+    # after the first critic-vs-control comparison came out at p = 0.30.
+    seed = getattr(args, 'seed', None)
+    if seed is not None:
+        pl.seed_everything(seed, workers=True)
+        print(f"Seeded everything with {seed}")
+
     out_dir = Path(args.logdir, args.run_name)
     histogram_file = Path(args.datadir, 'size_distribution.npy')
     histogram = np.load(histogram_file).tolist()
