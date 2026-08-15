@@ -8,7 +8,7 @@ with training preprocessing (same atom vocabulary, same CoM centering).
 Usage (from project root):
     python scripts/run_baseline.py \\
         --checkpoint checkpoints/crossdocked_fullatom_cond.ckpt \\
-        --test_dir DiffSBDD/data/processed_expert_atomica/test \\
+        --test_dir data/processed_expert_atomica/test \\
         --outdir results/baseline_A \\
         --n_pockets 100 --n_samples 100 --batch_size 20 --timesteps 100 \\
         --no_atomica
@@ -16,7 +16,7 @@ Usage (from project root):
     # With ATOMICA embeddings (conditions B/C/D):
     python scripts/run_baseline.py \\
         --checkpoint checkpoints/my_finetuned.ckpt \\
-        --test_dir DiffSBDD/data/processed_expert_atomica/test \\
+        --test_dir data/processed_expert_atomica/test \\
         --outdir results/cond_C
 
 Outputs:
@@ -162,7 +162,7 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument('--checkpoint', type=Path, required=True)
     p.add_argument('--test_dir',   type=Path,
-                   default='DiffSBDD/data/processed_expert_atomica/test')
+                   default='data/processed_expert_atomica/test')
     p.add_argument('--outdir',     type=Path, required=True)
     p.add_argument('--n_pockets',  type=int, default=100)
     p.add_argument('--n_samples',  type=int, default=100)

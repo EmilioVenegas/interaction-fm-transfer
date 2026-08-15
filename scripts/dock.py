@@ -8,7 +8,7 @@ smina --score_only, and writes a docking.csv.
 Usage (from project root):
     python scripts/dock.py \\
         --filtered_dir results/cond_C/filtered \\
-        --pdb_dir data/receptor_pdbs \\
+        --pdb_dir data/receptor_pdbs_test_v2 \\
         --out results/cond_C/docking.csv \\
         --condition cond_C \\
         --n_jobs 4
@@ -17,7 +17,7 @@ Usage (from project root):
     for cond in baseline_A cond_B cond_C cond_D; do
         python scripts/dock.py \\
             --filtered_dir results/$cond/filtered \\
-            --pdb_dir data/receptor_pdbs \\
+            --pdb_dir data/receptor_pdbs_test_v2 \\
             --out results/$cond/docking.csv \\
             --condition $cond
     done

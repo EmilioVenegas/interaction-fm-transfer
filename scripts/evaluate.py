@@ -21,7 +21,7 @@ Usage (from project root):
     # Full pipeline with PoseBusters + filtering:
     python scripts/evaluate.py \\
         --sdf_dir results/cond_C \\
-        --pdb_dir data/receptor_pdbs \\
+        --pdb_dir data/receptor_pdbs_test_v2 \\
         --out results/cond_C/metrics.json \\
         --qed_min 0.5 --sa_max 5.0
 

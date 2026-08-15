@@ -19,7 +19,7 @@ Usage (from project root):
     python scripts/extract_pocket_pdbs.py \\
         --test_dir  data/processed_expert_atomica/test \\
         --lmdb_path data/crossdocked_pocket10_processed.lmdb \\
-        --outdir    data/receptor_pdbs
+        --outdir    data/receptor_pdbs_test_v2
 """
 
 import argparse
@@ -213,7 +213,7 @@ def main():
                    default='data/processed_expert_atomica/test')
     p.add_argument('--lmdb_path', type=Path,
                    default='data/crossdocked_pocket10_processed.lmdb')
-    p.add_argument('--outdir',    type=Path, default='data/receptor_pdbs')
+    p.add_argument('--outdir',    type=Path, default='data/receptor_pdbs_test_v2')
     p.add_argument('--n_pockets', type=int,  default=0,
                    help='cap on pockets written; 0 means no cap')
     p.add_argument('--manifest',  type=Path,

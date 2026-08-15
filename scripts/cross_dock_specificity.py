@@ -45,7 +45,7 @@ Usage (from repo root):
     python scripts/cross_dock_specificity.py \\
         --arms baseline_A=results/baseline_A/filtered \\
                critic=results/critic/filtered \\
-        --pdb_dir data/receptor_pdbs \\
+        --pdb_dir data/receptor_pdbs_test_v2 \\
         --out results/specificity/specificity.csv \\
         --n_decoy_pockets 3 --max_mols_per_pocket 20 --n_jobs 8
 """
@@ -285,7 +285,7 @@ def main():
     p = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     p.add_argument("--arms", nargs="+", required=True,
                    help="name=path/to/filtered pairs, one per arm")
-    p.add_argument("--pdb_dir", default="data/receptor_pdbs")
+    p.add_argument("--pdb_dir", default="data/receptor_pdbs_test_v2")
     p.add_argument("--out", default="results/specificity/specificity.csv")
     p.add_argument("--n_decoy_pockets", type=int, default=3,
                    help="other pockets each molecule set is docked into")
