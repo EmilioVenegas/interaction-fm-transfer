@@ -177,6 +177,15 @@ def main():
                         'containing the reference ligand. Results are not a '
                         'valid generative benchmark; see the guard in '
                         'build_pocket_dict().')
+    p.add_argument('--pocket_list', type=Path, default=None,
+                   help='JSON mapping pocket name -> target (the '
+                        'pocket_targets.json written by '
+                        'scripts/extract_pocket_pdbs.py). Restricts generation '
+                        'to exactly those pockets. Without it, generation takes '
+                        'the first --n_pockets files in sorted order, which is '
+                        'NOT the same set the receptor PDBs were built from -- '
+                        'so molecules would be docked against pockets they were '
+                        'not generated for.')
     p.add_argument('--sanitize',   action='store_true', default=True)
     args = p.parse_args()
 
@@ -190,7 +199,18 @@ def main():
     model = model.to(device)
     model.eval()
 
-    test_files = sorted(args.test_dir.glob('complex_*.pt'))[:args.n_pockets]
+    test_files = sorted(args.test_dir.glob('complex_*.pt'))
+    if args.pocket_list is not None:
+        with open(args.pocket_list) as fh:
+            wanted = set(json.load(fh))
+        test_files = [f for f in test_files if f.stem in wanted]
+        missing = wanted - {f.stem for f in test_files}
+        if missing:
+            print(f"WARNING: {len(missing)} pockets in {args.pocket_list} have "
+                  f"no .pt in {args.test_dir}: {sorted(missing)[:5]}")
+        print(f"Restricted to {len(test_files)} pockets from {args.pocket_list}")
+    else:
+        test_files = test_files[:args.n_pockets]
     if len(test_files) == 0:
         raise FileNotFoundError(f"No .pt files found in {args.test_dir}")
     print(f"Generating {args.n_samples} molecules for each of "
