@@ -221,6 +221,19 @@ def main():
                 print("  It is inside the noise floor, so it is not evidence of "
                       "an effect.")
 
+        # What this design could have detected. A null is only informative if
+        # the experiment had the power to see the effect it is nulling, which is
+        # the same logic as the buriedness control in the hotspot work: show the
+        # measurement can detect a positive before reporting that it did not.
+        mde = 2.80 * d.std(ddof=1) / np.sqrt(len(d))  # 1.96 + 0.84, two-sided
+        print(f"\nDetectable effect: with {len(d)} pockets at a per-pocket sd of "
+              f"{d.std(ddof=1):.3f},\nthe smallest difference this design "
+              f"resolves at 80% power is {mde:.3f} kcal/mol.")
+        if abs(d.mean()) < mde:
+            print(f"The observed {d.mean():+.3f} is below that, so this is "
+                  f"'no effect large enough to see',\nnot 'no effect'. Reporting "
+                  f"it as a bound is honest; reporting it as zero is not.")
+
         n = len(d)
         n_improved = int((d > 0).sum())
         verdict = next((name for name, rule, _ in DECISION_RULES
