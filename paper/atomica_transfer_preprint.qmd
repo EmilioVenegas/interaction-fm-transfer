@@ -1,0 +1,332 @@
+---
+title: "Within-system discrimination does not imply cross-system transfer: interaction foundation models in structure-based generative design"
+shorttitle: "Within-system discrimination does not imply cross-system transfer"
+author:
+  - name: Emilio A. Venegas
+    orcid: 0000-0002-7689-9185
+    email: "emiliovenegas10@gmail.com"
+    corresponding: true
+    affiliations:
+      - name: Tecnológico de Monterrey, Escuela de Medicina y Ciencias de la Salud
+        address: "Ave. Eugenio Garza Sada 2501 Sur, Col. Tecnológico"
+        city: "Monterrey, N.L."
+        postal-code: "64700"
+        country: "México"
+abstract: |
+  Pretrained molecular-interaction foundation models are increasingly adapted for
+  structure-based generative design under the assumption that their ability to
+  recognise native-like binding geometries will transfer to guiding generative
+  processes in novel pockets. In this work, we demonstrate a sharp regime
+  boundary in the transferability of these models. We find that a foundation
+  model can discriminate interaction geometry almost perfectly *within* a single
+  complex, yet fails to transfer its predictive power *between* complexes.
+  Furthermore, we identify a mechanistic dose-response consequence: optimising the
+  model's interface distance as a training-time critic does not weakly assist
+  pocket fit but actively *trades against* it, provably lowering the objective
+  while generated molecules dock worse and reproduce fewer reference contacts.
+  Finally, we show that standard evaluations for structure-based generative
+  models cannot resolve the effects they are frequently used to claim. By
+  pairing every negative result with a control that proves the measurement could
+  have detected the positive, we quantify these detection limits, recommending
+  that future generative evaluations report a measured detection limit and a
+  same-scale null alongside point estimates.
+keywords:
+  - structure-based drug design
+  - generative models
+  - foundation models
+  - molecular interactions
+  - binding specificity
+  - detection limits
+
+# ── bioRxiv-style submission metadata ────────────────────────────────────
+article-category: "New Results"
+subject-area: "Bioinformatics"
+
+# ── Required statements for bioRxiv ──────────────────────────────────────
+author-approvals: |
+  All authors have seen and approved the manuscript. The work reported here
+  has not been accepted or published elsewhere.
+competing-interests: |
+  The author declares no competing financial or non-financial interests.
+funding: |
+  This research received no specific grant from any funding agency in the
+  public, commercial, or not-for-profit sectors.
+distribution-reuse: |
+  CC-BY 4.0 International. The accompanying software is distributed under
+  the MIT License.
+external-data: |
+  Source code, examples, test suite, and reproducibility scripts are openly
+  available at <https://github.com/EmilioVenegas/ATOMICA-Diffusion-Antibiotic-design>.
+
+# ── Quarto rendering options ─────────────────────────────────────────────
+bibliography: references.bib
+link-citations: true
+number-sections: true
+fontsize: 11pt
+geometry:
+  - margin=1in
+linestretch: 1.25
+papersize: letter
+mainfont: "Times New Roman"
+sansfont: "Arial"
+monofont: "Courier New"
+linkcolor: NavyBlue
+citecolor: NavyBlue
+urlcolor: NavyBlue
+format:
+  pdf:
+    documentclass: article
+    pdf-engine: xelatex
+    toc: false
+    colorlinks: true
+    include-in-header:
+      text: |
+        \usepackage{lineno}
+        \linenumbers
+        \usepackage{unicode-math}
+        \setmathfont[
+          BoldFont=XITSMath-Bold.otf
+        ]{XITSMath-Regular.otf}
+        \usepackage{mathtools}
+        \usepackage{booktabs}
+        \usepackage{microtype}
+        \usepackage{siunitx}
+        \usepackage{fancyvrb}
+        \fvset{fontsize=\footnotesize}
+        \renewcommand{\texttt}[1]{{\footnotesize\ttfamily #1}}
+        \usepackage{graphicx}
+        \usepackage[font=small,labelfont=bf]{caption}
+        \usepackage{abstract}
+        \renewcommand{\absnamepos}{flushleft}
+        \setlength{\absleftindent}{0pt}
+        \setlength{\absrightindent}{0pt}
+        \renewcommand{\abstractname}{\textbf{Abstract}}
+        \usepackage{titlesec}
+        \titleformat{\section}{\normalfont\large\bfseries}{\thesection}{1em}{}
+        \titleformat{\subsection}{\normalfont\normalsize\bfseries}{\thesubsection}{1em}{}
+        \titleformat{\subsubsection}{\normalfont\normalsize\itshape}{\thesubsubsection}{1em}{}
+        % ── Custom title block with affiliation (overrides Quarto default) ──
+        \makeatletter
+        \renewcommand{\maketitle}{%
+          \begin{center}%
+            {\LARGE \@title \par}%
+            \vspace{1.5em}%
+            {\large Emilio A.\ Venegas\textsuperscript{1,\,*}\par}%
+            \vspace{0.6em}%
+            {\small\itshape\textsuperscript{1}Tecnológico de Monterrey, Escuela de Medicina y Ciencias de la Salud,\\
+              Ave.\ Eugenio Garza Sada 2501 Sur, Col.\ Tecnológico, Monterrey, N.L.\ 64700, México\par}%
+            \vspace{0.4em}%
+            {\small\textsuperscript{*}Corresponding author: \texttt{emiliovenegas10@gmail.com}\par}%
+          \end{center}%
+          \vspace{0.8em}%
+        }
+        \makeatother
+  html:
+    toc: true
+    toc-depth: 3
+    html-math-method: katex
+    code-fold: false
+    embed-resources: true
+execute:
+  echo: true
+  warning: false
+  cache: false
+---
+
+# Introduction {#sec-intro}
+
+Foundation models for molecular interactions are widely assumed to transfer seamlessly to downstream tasks in structure-based drug design (SBDD). As these models are exposed to broad swaths of biological data, their encoded representations are anticipated to generalise out-of-distribution, particularly when discriminating active from inactive compounds, or when guiding generative processes toward physically viable interactions.
+
+In this work, we present a sharp regime boundary governing the utility of these representations. We find that a pretrained molecular-interaction foundation model (ATOMICA [@fang2025atomica]) discriminates interaction geometry almost perfectly *within* a single protein-ligand complex. However, it fails to transfer this capability *between* distinct complexes. Applications involving these models divide cleanly along this line, and the boundary robustly predicts which applications will succeed. 
+
+Furthermore, we identify the mechanistic dose-response consequences of this boundary. Optimising the model's interface distance as a training-time critic does not weakly help pocket fit; rather, it *trades against* it. We show that the critic objective provably falls while the generated molecules dock worse and reproduce fewer reference contacts. Lastly, we establish that standard evaluation metrics in SBDD cannot resolve the effects they are routinely used to claim, quantifying by how much these metrics fall short of necessary detection limits. 
+
+Crucially, every negative result reported here is paired with a specific control proving that the measurement *could* have detected the positive effect, transforming these findings from an absence of evidence into concrete evidence of absence. The remainder of this paper is structured as follows. Section [-@sec-methods] outlines the ATOMICA representations, the diffusion generator, the benchmark setups, and the controls employed. Section [-@sec-results] details the evidence supporting our three main claims. Section [-@sec-discussion] discusses the implications of the regime boundary, the mechanisms underlying the transfer failure, and provides actionable recommendations for evaluating structure-based generative models.
+
+# Methods {#sec-methods}
+
+We study the ATOMICA model [@fang2025atomica] applied as a pretrained interaction foundation model. Our analysis evaluates its representations across two primary segments: a two-segment interface encoding and the PS\_300 fragmentation scheme, contrasting graph versus unit representations.
+
+To robustly evaluate the capabilities of the model, we use a comprehensive pose benchmark and a diffusion generator equipped with a critic objective. Our diffusion model builds on recent equivariant diffusion architectures for SBDD [@schneuing2024diffsbdd]. We assess performance using established structural evaluation frameworks. Notably, we employ the interaction fingerprint metrics from PoseCheck [@harris2023posecheck], which evaluates the biological realism of generated poses, and use their qualitative finding that generated molecules often make fewer key interactions than reference ligands as independent corroboration of our null and ceiling expectations. We also consider binding-specificity metrics akin to Delta Score [@gao2024rethinking], physical validity checks analogous to PoseBusters [@buttenschoen2024posebusters], and established benchmarks such as GenBench3D [@baillif2024genbench3d], CBGBench [@li2024cbgbench], and CrossDocked2020 [@francoeur2020crossdocked2020]. 
+
+When assessing interaction hotspot fields, we deploy the validation protocol of Radoux et al.\ (2016) [@radoux2016identifying]. Docking validations are performed using smina [@koes2013smina] and AutoDock Vina [@trott2010autodock], and molecular manipulations rely on RDKit [@rdkit]. We explicitly eschew learning supervised pharmacophore readouts directly from probe representations (as done in PharmacoNet [@seo2024pharmaconet]) to isolate the intrinsic, training-free signal of the foundation model.
+
+**Controls.** The core of our methodology is the rigorous pairing of every metric with a same-scale null. We rely on the following controls:
+- **Permuted-weight control:** Evaluates architectures without learned chemical information.
+- **Buriedness control:** Distinguishes protein neighbour-count confounds from genuine interaction field signals.
+- **Placement null:** Provides a baseline of randomly positioned but structurally sound compounds.
+- **True-binder ceiling:** Establishes the maximum expected signal from a known, distinct binder.
+- **Matched decoys & seed-only noise floors:** Quantify the variance strictly attributable to sampling and data splits rather than physical affinity.
+
+**Gotcha:** During initial tests, a naive `pocket_pool` representation scored the best raw AUROC of any variant (0.949). However, testing it with random weights yielded 0.923. The high performance was an artefact of architecture and geometry, not learned chemistry. This demonstrates why every representation claim in this study is strictly paired with a same-architecture, same-scale, no-learned-information comparison.
+
+**Pre-registration.** Analysis plans for these experiments were committed before the results existed (specifically, `results/specificity/ANALYSIS_PLAN.md` and `results/interface_fidelity/ANALYSIS_PLAN.md`), guaranteeing that our evaluation criteria were not post-hoc adapted to the findings.
+
+# Results {#sec-results}
+
+## Within-system discrimination is near-perfect
+
+We first test the foundation model's capacity to discriminate poses within a single complex. We use a clash- and composition-controlled pose benchmark with 30 poses per class. As shown in @tbl-within, the linear probe on the representation achieves an AUROC of 1.000, establishing an *upper bound on extractable signal* that is fitted on the system it scores; it is not a competing number but rather a ceiling of theoretical detectability. Notably, the rotation head is anti-correlated: displaced poses score *lower* rotational correction than native ones.
+
+| scorer | AUROC | Spearman vs RMSD | needs fitting |
+|---|---|---|---|
+| min contact distance (trivial baseline) | 0.727 | — | no |
+| training-free denoising energy | 0.787 | +0.476 | no |
+| linear probe on the representation | **1.000** | +0.927 | yes, per system |
+
+: Within-system discrimination performance on the clash- and composition-controlled pose benchmark. The 1.000 AUROC represents an upper bound on extractable signal. {#tbl-within}
+
+We independently confirm this on a larger set of 92 targets and 1,662 poses. Because every pose of a target is the same molecule rigidly displaced, composition is controlled by construction. The pretrained `graph_cosine` distance achieves an AUROC of 0.926, vastly outperforming the permuted-weight control (0.697) (@tbl-larger-within).
+
+| metric | ρ(all) | ρ(<4 Å) | AUROC |
+|---|---|---|---|
+| `graph_cosine` (pretrained) | +0.386 | +0.558 | **0.926** |
+| `graph_cosine` (permuted weights) | +0.149 | +0.061 | 0.697 |
+| contacts (no-learning floor) | +0.253 | +0.355 | 0.837 |
+| smina (reference) | +0.281 | +0.465 | 0.844 |
+
+: Independent confirmation on a larger set (92 targets, 1,662 poses). Pretraining provides the critical signal, leaving the permuted-weight control near the baseline in the low-RMSD regime. {#tbl-larger-within}
+
+## Cross-system transfer fails
+
+We next evaluated the representations on a 100-target CASF-style benchmark [@su2019casf] built from open RCSB data, consisting of 72 solvable targets and 1,674 poses. Evaluation was performed out-of-fold under `GroupKFold` by target, and the docking power metric measured whether the top-ranked pose fell within 2 Å of the crystal structure.
+
+Every evaluated variant sits well above the 15.7% random floor, indicating that the head learns something real and transferable (@tbl-cross). However, it is fundamentally uncompetitive with smina, a fast, free, established baseline (59.7%). 
+
+| scorer | docking power | hits | mean per-target Spearman | vs smina |
+|---|---|---|---|---|
+| random floor | 15.7% | — | — | — |
+| **smina** | **59.7%** | 43/72 | — | — |
+| graph (32-d) | 55.6% | 40/72 | +0.371 ± 0.084 | p = 0.70 |
+| pocket_pool (96-d) | 41.7% | 30/72 | +0.344 ± 0.077 | p = 0.019, worse |
+| all-block (288-d) | 63.9% | 46/72 | +0.400 ± 0.074 | p = 0.65 |
+
+: Cross-system transfer evaluation on a 72-target benchmark. Transferable signal exists (above the random floor) but fails to outcompete standard baselines like smina. {#tbl-cross}
+
+We must report a retraction in the main text regarding these results. An earlier 22-target preliminary assessment had `pocket_pool` at 68.2% with a paired Spearman gain of +0.127 (p ≈ 0.07). At 72 targets, this effect reversed entirely, measuring 41.7% and −0.027 (p = 0.52). The reversal was driven by selection bias (six feature sets were evaluated, and the best was initially reported) and sample size (22 targets could not resolve differences, with every McNemar p ≥ 0.69). Recording a selection bias does not remove it, making rigorous out-of-fold validation and pre-registration essential.
+
+## Interaction hotspot fields carry no signal
+
+We probed interaction hotspot fields using chemical probes on a grid, scored with the training-free denoising energy under the validation protocol of Radoux et al.\ (2016) [@radoux2016identifying]. For CDK2 (1H1S chain A) over a 5 Å site, we tested 1,683 non-clashing points.
+
+As shown in @tbl-hotspot, the median percentile for the matched probe is 52.4. Without a control, landing in the 98th percentile might seem successful; however, our buriedness control reaches 98.2. Protein neighbour count alone beats the interaction field. Consequently, the type specificity remains near chance (0.107 vs 0.167), proving the field carries no detectable chemical signal.
+
+| measure | value | reference |
+|---|---|---|
+| median percentile, matched probe | 52.4 | Radoux: 97 (fragments), 72 (leads) |
+| median percentile, **buriedness control** | **98.2** | the confound |
+| median percentile, random placement | 52.2 | the floor |
+| type specificity | 0.107 | chance = 0.167 |
+
+: Interaction hotspot field signal evaluation. The buriedness control outperforms the field, exposing protein neighbour count as the true driver of percentile rank. {#tbl-hotspot}
+
+## Pocket-only encodings are degenerate
+
+We evaluated 99 pockets differing exclusively in block vocabulary to understand the behaviour of pocket-only encodings (@tbl-pocket). A mean pairwise cosine similarity of 1.0000 across different pockets indicates that every pocket mapped to the exact same direction. Conditioning on pocket identity was not merely attenuated; it was absent. Fixing the vocabulary to a per-residue definition barely altered this (0.9917). Only by supplying the second segment (the ligand) does the cosine fall to 0.9248 over distinct targets. Therefore, the binding defect originates from the missing interaction partner, not the block vocabulary.
+
+| | old `[GLB, UNK]` | per-residue |
+|---|---|---|
+| blocks per pocket | 2.0 | 56.3 (17.9 distinct types) |
+| **mean pairwise cosine between different pockets (graph)** | **1.0000** | **0.9917** |
+| mean pairwise cosine (unit) | 1.0000 | 0.9999 |
+| composition probe R² (graph) | 0.201 | 0.176 |
+
+: Pocket-only encoding degeneracy. High cosine similarities indicate identical directional mapping for all pockets when the ligand partner is omitted. {#tbl-pocket}
+
+This degeneracy explains an earlier observation across 100 pockets where valid molecule metrics improved (QED 0.424 → 0.483; diversity 0.731 → 0.684) with no target-aware gain: the model behaved as a generic drug-likeness prior. This is a worked example of a target-independent metric being mistakenly interpreted as evidence of pocket fit.
+
+## The critic: the objective moves, the molecules do not
+
+We integrated the distance metric as a critic objective in the diffusion generator: $L = L_{\text{diffusion}} + \lambda(t) \cdot d(\text{ATOMICA}(\text{pocket}, \hat{x}_0), \text{ATOMICA}(\text{pocket}, x_{\text{true}}))$. The ATOMICA model was frozen, with LoRA applied to the EGNN. Crucially, the objective calibrates $\lambda$ by gradient norm, not loss ratio; achieving a 10% gradient share requires $\lambda = 53.6$ through the input-side adapter but only $0.688$ through LoRA.
+
+At $\lambda = 0.7$, the critic does not move its own objective. A paired replay across 475 samples with shared seeds produced differences that flipped signs across seeds (@tbl-critic-seed), proving previous reports of a −37.9% logged metric fall were seed artefacts. 
+
+| seed | critic | control | Δ | critic lower at | p |
+|---|---|---|---|---|---|
+| r0 | 0.002972 | 0.003168 | −0.000197 | 261/475 | 0.006 |
+| r1 | 0.003109 | 0.002976 | +0.000133 | 223/475 | 0.030 |
+| r2 | 0.003067 | 0.003112 | −0.000045 | 243/475 | 0.849 |
+
+: Paired replay at $\lambda = 0.7$ across shared seeds. The sign flips across seeds, demonstrating that the apparent fall in the logged metric was a seed artefact. {#tbl-critic-seed}
+
+At $\lambda = 20$, the critic actively degrades performance. While its own ATOMICA objective improves (p = 7e-7), every downstream readout is worse or flat (@tbl-critic-dose). The molecules dock 0.232 kcal/mol worse into their own pockets.
+
+| readout | λ = 20 vs control |
+|---|---|
+| its own ATOMICA objective | **improves**, 2.8 control-seed sd, p = 7e-7, paired |
+| diffusion loss | +0.0078 (~7 sd of the seed spread) |
+| docking into its own pocket | **0.232 kcal/mol worse**, p = 0.001 |
+| pocket specificity | −0.055 ± 0.047, 17/44 pockets, p = 0.21 (MDE 0.131) |
+| interface fidelity | no gain; contact recovery slightly worse |
+
+: Downstream readouts at $\lambda = 20$. The critic successfully optimises its internal objective but consistently degrades physical pocket fit. {#tbl-critic-dose}
+
+## Interface fidelity, and the dose-response
+
+To assess interface fidelity, we deployed two co-primary fingerprints against the reference ligand across 44 pockets: FP-A (residue-contact Tanimoto, 4.0 Å, heavy atoms) and FP-B (ProLIF interaction fingerprint [@bouysset2021prolif], recall), matching constructs used by PoseCheck [@harris2023posecheck].
+
+First, we establish the measurable scale in @tbl-fidelity-scale. The entire span under study equates to approximately 0.6 Å of rigid displacement.
+
+| | FP-A Tanimoto | FP-A recall | FP-B Tanimoto | FP-B recall |
+|---|---|---|---|---|
+| placement null | 0.5107 | 0.6261 | 0.3115 | 0.4696 |
+| real arms, pooled | 0.6277 | 0.7786 | 0.3764 | 0.5769 |
+| true-binder ceiling | 0.7596 | 0.8333 | 0.5251 | 0.7500 |
+| usable range | 0.2489 | 0.2073 | 0.2136 | 0.2804 |
+
+: Scale of interface fidelity fingerprints before comparison. The usable range is narrow, emphasising the need for precise controls. {#tbl-fidelity-scale}
+
+Comparing the critic arm (`critic_lambda20_r0`) against the control, we find no fidelity gain, and suggestive evidence of active degradation (@tbl-fidelity-comparison). At $\lambda = 0.7$, the cross-arm difference is negligible (−0.00009 on FP-A). At $\lambda = 20$, the shift clears seed noise by large margins, proving the dose-response is readable. We conclude there is no fidelity gain, though the active degradation rests on a single seed and remains suggestive.
+
+| statistic | Δ | % of range | improved | p | s_arm |
+|---|---|---|---|---|---|
+| **FP-A Tanimoto, mean** | **−0.00800 ± 0.00214** | −3.22% | **12/44** | **0.0002** | 0.00756 |
+| FP-A Tanimoto, top-3 | −0.00738 ± 0.00406 | −2.97% | 17/44 | 0.134 | 0.01011 |
+| FP-B recall, mean | +0.00237 ± 0.00428 | +0.84% | 20/44 | 0.690 | 0.00538 |
+| FP-B recall, top-3 | +0.00258 ± 0.00415 | +0.92% | 10/44 | 0.639 | 0.00827 |
+
+: Interface fidelity comparison at $\lambda = 20$. The critic provides no fidelity gain, and actively degrades the FP-A Tanimoto score. {#tbl-fidelity-comparison}
+
+## Detection limits
+
+Our final analysis quantifies the detection limits of standard evaluations:
+- **Cross-docking specificity** [@gao2024rethinking] reveals a Minimum Detectable Effect (MDE) of 0.312 before matched decoys, and 0.131 after. Variance decomposition shows that 94% of the reported effect's variance originated from harness sampling noise, leaving an sd ≈ 0.18 for any real difference. Every effect in the literature-relevant range is below this threshold.
+- **Seed replicates cannot catch a shared-stream confound.** Supplying the same rng stream to seed replicates handed every replicate the same decoy assignment, replicating the confound rather than the effect.
+- **Interface fidelity** resolves at much finer scales: the MDE for Tanimoto is 0.0072 (2.9% of its dynamic range). A correctly-sized molecule placed at the reference centroid artificially recovers 51% of reference contacts and 31% of typed interactions, showing that absolute fingerprint scores are predominantly positional.
+- **Same-site filtering** is critical. Of 99 candidate true-binder ceiling pairs, 7 bound entirely different sites, which would have artificially deflated the ceiling and inflated any reported percentage gains.
+- **Sanitisation filtering** silently discarded ~2.5% of generated molecules inside geometric measurements. Direct ATOM parsing proved vastly superior to standard RDKit [@rdkit] sanitisation.
+
+# Discussion {#sec-discussion}
+
+We have demonstrated a sharp boundary in the capabilities of pretrained molecular-interaction foundation models. The model exhibits near-perfect within-system discrimination but fails to transfer this power cross-system. The mechanism underlying this failure suggests that optimising an abstract interface distance trades directly against physical pocket fit. When employed as a critic, the model successfully minimises its internal objective while degrading downstream molecular quality and docking performance. 
+
+Importantly, our detection limit analysis underscores the necessity of rigorous controls. Absolute metrics in SBDD are highly positional, and seed replicates often mask shared-stream confounds. Therefore, we recommend that evaluations of structure-based generative models must report a measured detection limit and a same-scale null, rather than relying solely on point estimates.
+
+# Data, scripts, and code availability {.unnumbered}
+
+All source code, analysis scripts, and raw per-pair scores (in `results/specificity/` and `results/interface_fidelity/`) are openly available under the MIT License at the `ATOMICA-Diffusion-Antibiotic-design` repository. The pre-registration analysis plans (`results/*/ANALYSIS_PLAN.md`) were committed prior to results generation. 
+
+# Funding {.unnumbered}
+
+This research received no specific grant from any funding agency in the public, commercial, or not-for-profit sectors.
+
+# Conflict of interest disclosure {.unnumbered}
+
+The author declares no competing financial or non-financial interests.
+
+# Artificial intelligence disclosure {.unnumbered}
+
+The core algorithms, software architecture, and numerical experiments were designed and directed by the author. Generative-AI coding assistants were used to help draft portions of the manuscript text; all quantitative results were produced by the author's code, and all AI-assisted text was manually reviewed, verified against the analytical results, and checked for errors before inclusion. The author takes full responsibility for the content of the manuscript.
+
+# Author contributions {.unnumbered}
+
+E.A.V. designed the experiments, performed all numerical analyses, and wrote the manuscript.
+
+# Acknowledgements {.unnumbered}
+
+The author acknowledges the open-source scientific Python ecosystem without which this work would not have been possible.
+
+# References {.unnumbered}
+
+::: {#refs}
+:::

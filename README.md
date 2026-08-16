@@ -1,165 +1,49 @@
-# ATOMICA-Diffusion
+# interaction-fm-transfer
 
-**Does conditioning a structure-based diffusion model on a pretrained *interaction*
-representation, instead of raw pocket geometry, produce better molecules?**
+This repository contains the code, data, and evidence behind the study:
+**"Within-system discrimination does not imply cross-system transfer: interaction foundation models in structure-based generative design."**
 
-This repository couples [ATOMICA](https://github.com/mims-harvard/ATOMICA) — a
-foundation model pretrained on ~2M molecular interaction interfaces — to
-[DiffSBDD](https://github.com/arneschneuing/DiffSBDD), an SE(3)-equivariant
-diffusion model for de novo ligand design, through a single SE(3)-equivariant
-cross-attention adapter. Both pretrained models are frozen, so the measured effect
-isolates the conditioning signal itself.
+*Origin note:* This repository succeeds and replaces the class project on antibiotic design originally hosted at [ATOMICA-Diffusion-Antibiotic-design](https://github.com/EmilioVenegas/ATOMICA-Diffusion-Antibiotic-design). The framing and repository name have been updated to reflect the rigorous controlled study it became.
 
-The application target is PBP3 in multidrug-resistant ESKAPE pathogens
-(*A. baumannii*, *P. aeruginosa*, *K. pneumoniae*); the benchmark below is
-CrossDocked.
+## Overview
 
-## Result
+Pretrained molecular-interaction foundation models are increasingly adapted for structure-based generative design. In this work, we demonstrate a sharp regime boundary in the transferability of these models: they discriminate interaction geometry perfectly *within* a single complex, but fail to transfer *between* complexes. We also identify a mechanistic consequence of this failure: optimising the model's interface distance as a critic trades against pocket fit.
 
-Two arms over the same 100 held-out pockets, ~9,300 valid molecules each. Arm B
-adds the adapter to arm A's frozen backbone; since the adapter is zero-initialised,
-both arms start from identical behaviour.
+We evaluate this using established metrics like PoseCheck (interaction recovery) and Delta Score (cross-docking specificity), finding that they cannot resolve the effects they are often used to claim.
 
-![Relative change from the unconditioned baseline](results/figures/ablation.png)
+## Claim-to-Evidence Map
 
-| Metric | A — baseline | B — ATOMICA-conditioned | Δ |
-| --- | --- | --- | --- |
-| **QED** | 0.424 ± 0.214 | **0.483 ± 0.208** | **+0.059** (+13.9%) |
-| Lipinski | 4.417 ± 0.970 | 4.690 ± 0.696 | +0.273 (+6.2%) |
-| SA | 0.581 ± 0.130 | 0.585 ± 0.112 | +0.004 |
-| Validity | 0.962 | 0.950 | −0.012 |
-| Diversity | 0.731 ± 0.042 | 0.684 ± 0.025 | −0.046 (−6.4%) |
-| Novelty | 1.000 | 1.000 | ≈ |
+Every quantitative claim in the preprint is backed by pre-registered analysis plans and raw data in this repository. 
+Analysis plans were committed *before* results were generated (see `results/specificity/ANALYSIS_PLAN.md` and `results/interface_fidelity/ANALYSIS_PLAN.md`).
 
-Conditioning shifts the generated distribution toward drug-likeness, at a measurable
-cost in diversity.
+| Claim | Evidence Directory | Script / Analysis | Raw Data |
+|---|---|---|---|
+| **R1. Within-system discrimination is near-perfect** (AUROC 1.000 / 0.926) | `results/phase0/`, `results/critic_gate/` | `scripts/hotspot_validate.py` | `results/critic_gate/gate_cache.json` |
+| **R2. Cross-system transfer fails** (63.9% vs smina 59.7%) | `results/pose_scorer/` | `scripts/train_pose_scorer.py` | `results/pose_scorer/pose_scorer_report.json` |
+| **R3. Interaction hotspot fields carry no signal** (52.4 percentile) | `results/hotspot/` | `scripts/hotspot_validate.py` | `results/hotspot/hotspot_1h1s_4SP.json` |
+| **R4. Pocket-only encodings are degenerate** (cosine 1.0000) | `results/featurization_probe/` | `scripts/featurization_probe.py` | `results/featurization_probe/featurization_probe.json` |
+| **R5. The critic objective moves, but molecules dock worse** (0.232 kcal/mol worse) | `results/critic_arms/`, `results/specificity/` | `scripts/cross_dock_specificity.py` | `results/specificity/specificity_lambda20_paired.csv` |
+| **R6. Interface fidelity and dose-response** | `results/interface_fidelity/` | `scripts/interface_fidelity.py` | `results/interface_fidelity/primary_fpa_tanimoto.csv`, `primary_result.json` |
+| **R7. Detection limits (94% variance from noise)** | `results/specificity/` | `scripts/analyse_specificity_seeds.py` | `results/specificity/specificity_seeds.csv` |
 
-**The honest caveat:** QED, SA and Lipinski are computed from the ligand alone — they
-do not know which pocket it was generated for. So this result cannot yet distinguish
-"better pocket-specific fit" from "the adapter narrowed the model toward generically
-drug-like chemistry," and the diversity drop is consistent with the latter. The
-decisive experiment is a matched Vina comparison across both arms on the same
-pockets, which has not been run. See [docs/results.md](docs/results.md).
+*(See `docs/PREPRINT_PROMPT.md` and `docs/experiment-plan.md` for full technical constraints and detailed quantitative findings).*
 
-Reproduce the table:
+## Environment Setup
 
-```bash
-python scripts/compare_conditions.py \
-    --conditions results/baseline_A results/cond_B --outdir results
-```
+The pipeline requires isolated conda environments to avoid silent build replacements:
 
-## How it works
+1. **ATOMICA & DiffSBDD (Training & Generation)**
+   ```bash
+   conda env create -f environment-atomica.yml
+   conda activate atomica-interface
+   ```
+   *Note:* Uses `torch==2.0.1` and CUDA 11.8. **Warning:** Do not run `pip install` on anything depending on `torch` without pinning it, as it will silently replace the CUDA build with a CPU wheel.
 
-One cross-attention block inside each denoising step of DiffSBDD's `EGNNDynamics`:
+2. **Docking (smina)**
+   ```bash
+   conda create -n smina -c conda-forge smina=2020.12.10
+   ```
+   Point `SMINA_BIN` to `~/.conda/envs/smina/bin/smina`.
 
-| | |
-|---|---|
-| **Query** | ligand scalar features ⊕ 16-d timestep embedding |
-| **Key / Value** | frozen ATOMICA per-atom pocket embeddings |
-| **Output** | delta on ligand *invariant scalar* features only |
-
-Equivariance is preserved by construction: ATOMICA embeddings are rotation-invariant
-scalars, and the module reads and writes only invariant features — coordinates never
-enter the attention computation, so no frame dependence can be introduced. Ragged
-batching with a block-diagonal mask handles variable-sized pockets without padding
-artifacts.
-
-Details in [docs/method.md](docs/method.md).
-
-## Repository layout
-
-```
-DiffSBDD/          vendored fork — modified (see MODIFICATIONS.md)
-ATOMICA/           vendored upstream — unmodified, used as frozen encoder
-scripts/           preprocessing, evaluation, comparison
-  eval/            "three judges" pipeline: PAINS, Vina, Boltz-2
-rl_loop/           post-generation ADMET scoring / REOS filter / top-k selection
-results/           per-condition metrics and the ablation summary
-docs/              method and results write-ups
-```
-
-`DiffSBDD/` is a **modified fork**, not a pinned dependency —
-[MODIFICATIONS.md](MODIFICATIONS.md) itemises all 853 changed lines across 11 files
-and what each one does, so the boundary between upstream code and this project's
-contribution is inspectable. Licensing and attribution for both vendored projects
-are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
-
-## Setup
-
-Training and inference run in the conda environment; the newer Poetry environment
-covers scripts that need Boltz-2 and OpenBabel.
-
-```bash
-conda env create -f DiffSBDD/environment.yaml && conda activate diffsbdd
-# optional, for the deep-dive evaluation scripts
-pip install poetry && poetry install
-```
-
-## Usage
-
-All commands run from the repository root.
-
-**Preprocess** — filter CrossDocked and precompute ATOMICA embeddings:
-
-```bash
-python scripts/process_expert_atomica.py
-```
-
-**Train** — the ATOMICA-conditioned model:
-
-```bash
-cd DiffSBDD && python train.py --config configs/crossdock_fullatom_cond.yml
-```
-
-**Generate** — de novo ligands for a target pocket:
-
-```bash
-python DiffSBDD/generate_ligands.py checkpoints/crossdocked_fullatom_cond.ckpt \
-    --pdbfile example/5ndu.pdb --ref_ligand example/5ndu_linked_mols.sdf \
-    --atomica_config ATOMICA/pretrain/pretrain_model_config.json \
-    --atomica_weights ATOMICA/pretrain/pretrain_model_weights.pt \
-    --outfile generated_ligands.sdf
-```
-
-Add `--no_atomica` to reproduce the arm-A baseline.
-
-**Evaluate and compare arms:**
-
-```bash
-python scripts/evaluate.py --sdf_dir results/cond_B --label cond_B
-python scripts/compare_conditions.py --conditions results/baseline_A results/cond_B
-```
-
-More entry points, including the evolutionary ADMET loop, are in
-[run_scripts.md](run_scripts.md).
-
-## Status
-
-All four ablation arms were trained, but only A and B were sampled and evaluated,
-so the comparison above is A vs B. Two of the remaining arms are not what their
-names suggest: C is architecturally identical to B, and D is full backbone
-fine-tuning rather than LoRA — see
-[MODIFICATIONS.md](MODIFICATIONS.md#status-of-the-planned-ablation-arms).
-Outstanding runs are tracked in [run_scripts.md](run_scripts.md).
-
-**The conditioning signal was mis-extracted.** ATOMICA is pretrained on two
-interacting segments over chemically-typed residue blocks; preprocessing fed it a
-single segment with the whole pocket as one `UNK` block, engaging none of its
-interaction semantics. The result above is therefore best read as a negative result
-for naively-extracted foundation-model embeddings. [docs/experiment-plan.md](docs/experiment-plan.md)
-sets out the redesign, beginning with a go/no-go test of whether ATOMICA
-discriminates binders from decoys at all.
-
-Raw generated structures (~46 MB of SDF per arm) are not versioned; the per-condition
-metrics that summarise them are.
-
-## License
-
-MIT — see [LICENSE](LICENSE). Vendored dependencies retain their own MIT licenses;
-see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
-
-## Citing
-
-If you use this work, please cite the ATOMICA and DiffSBDD papers
-([THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)) alongside this repository — see
-[CITATION.cff](CITATION.cff).
+3. **Interaction Fingerprints (ProLIF/MDAnalysis/PLIP)**
+   Requires a separate environment (`ifp`) due to dependency constraints with the main environment.

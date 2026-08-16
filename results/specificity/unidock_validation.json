@@ -1,0 +1,9 @@
+{
+  "passed": false,
+  "speedup_vs_one_smina_core": 35.357456910773195,
+  "unidock_sec_per_molecule": 0.9628426837921142,
+  "smina_sec_per_molecule": 34.043668704032896,
+  "n_dockings": 150,
+  "mean_abs_specificity_disagreement": 1.2373005000000004,
+  "spearman": 0.551888130039891
+}

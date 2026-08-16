@@ -1,0 +1,317 @@
+{
+  "checkpoint": "my_logs/critic_graph_cosine_r2/checkpoints/last.ckpt",
+  "n_pockets": 44,
+  "n_samples": 100,
+  "timesteps": 100,
+  "no_atomica": true,
+  "pockets": [
+    {
+      "pocket_name": "complex_000001",
+      "source_file": "complex_000001.pt",
+      "source_id": "KS6A3_HUMAN_41_357_0/4nus_A_rec_4nus_2nk_lig_tt_min_0.sdf",
+      "n_generated": 99,
+      "sdf_file": "complex_000001.sdf"
+    },
+    {
+      "pocket_name": "complex_000026",
+      "source_file": "complex_000026.pt",
+      "source_id": "CD38_HUMAN_44_300_0/2ef1_B_rec_2hct_nmn_lig_tt_docked_0.sdf",
+      "n_generated": 98,
+      "sdf_file": "complex_000026.sdf"
+    },
+    {
+      "pocket_name": "complex_000051",
+      "source_file": "complex_000051.pt",
+      "source_id": "M3K14_HUMAN_321_678_0/4g3d_A_rec_4idv_13v_lig_tt_min_0.sdf",
+      "n_generated": 97,
+      "sdf_file": "complex_000051.sdf"
+    },
+    {
+      "pocket_name": "complex_000059",
+      "source_file": "complex_000059.pt",
+      "source_id": "MENE_BACSU_2_486_0/5x8f_C_rec_5x8f_amp_lig_tt_docked_6.sdf",
+      "n_generated": 97,
+      "sdf_file": "complex_000059.sdf"
+    },
+    {
+      "pocket_name": "complex_000063",
+      "source_file": "complex_000063.pt",
+      "source_id": "NAGZ_VIBCH_1_330_0/1tr9_A_rec_3gsm_vpu_lig_tt_min_0.sdf",
+      "n_generated": 98,
+      "sdf_file": "complex_000063.sdf"
+    },
+    {
+      "pocket_name": "complex_000069",
+      "source_file": "complex_000069.pt",
+      "source_id": "NQO1_HUMAN_2_274_0/5eai_B_rec_3jsx_cc2_lig_tt_min_0.sdf",
+      "n_generated": 99,
+      "sdf_file": "complex_000069.sdf"
+    },
+    {
+      "pocket_name": "complex_000085",
+      "source_file": "complex_000085.pt",
+      "source_id": "NR1H4_HUMAN_258_486_0/4qe6_A_rec_1ot7_iu5_lig_tt_min_0.sdf",
+      "n_generated": 98,
+      "sdf_file": "complex_000085.sdf"
+    },
+    {
+      "pocket_name": "complex_000112",
+      "source_file": "complex_000112.pt",
+      "source_id": "OLIAC_CANSA_1_101_0/5b0a_A_rec_5b09_4mx_lig_tt_min_0.sdf",
+      "n_generated": 99,
+      "sdf_file": "complex_000112.sdf"
+    },
+    {
+      "pocket_name": "complex_000117",
+      "source_file": "complex_000117.pt",
+      "source_id": "PA21B_PIG_23_146_0/3o4m_A_rec_3hsw_mcw_lig_tt_min_0.sdf",
+      "n_generated": 98,
+      "sdf_file": "complex_000117.sdf"
+    },
+    {
+      "pocket_name": "complex_000140",
+      "source_file": "complex_000140.pt",
+      "source_id": "PHKG1_RABIT_6_296_ATPsite_0/1phk_A_rec_1phk_atp_lig_tt_min_0.sdf",
+      "n_generated": 97,
+      "sdf_file": "complex_000140.sdf"
+    },
+    {
+      "pocket_name": "complex_000141",
+      "source_file": "complex_000141.pt",
+      "source_id": "PLCD1_RAT_134_756_0/1qat_B_rec_1djw_cip_lig_tt_min_0.sdf",
+      "n_generated": 99,
+      "sdf_file": "complex_000141.sdf"
+    },
+    {
+      "pocket_name": "complex_000145",
+      "source_file": "complex_000145.pt",
+      "source_id": "COTA_BACSU_1_513_0/4q89_A_rec_4q8b_sxx_lig_tt_min_0.sdf",
+      "n_generated": 96,
+      "sdf_file": "complex_000145.sdf"
+    },
+    {
+      "pocket_name": "complex_000148",
+      "source_file": "complex_000148.pt",
+      "source_id": "PTGIS_HUMAN_20_500_0/3b6h_A_rec_3b6h_mxd_lig_tt_min_0.sdf",
+      "n_generated": 98,
+      "sdf_file": "complex_000148.sdf"
+    },
+    {
+      "pocket_name": "complex_000149",
+      "source_file": "complex_000149.pt",
+      "source_id": "QPCT_HUMAN_33_361_0/2zef_A_rec_2afu_bgt_lig_tt_min_0.sdf",
+      "n_generated": 100,
+      "sdf_file": "complex_000149.sdf"
+    },
+    {
+      "pocket_name": "complex_000165",
+      "source_file": "complex_000165.pt",
+      "source_id": "RIBB_VIBCH_2_218_0/4p6p_A_rec_4p77_5rp_lig_tt_docked_0.sdf",
+      "n_generated": 99,
+      "sdf_file": "complex_000165.sdf"
+    },
+    {
+      "pocket_name": "complex_000170",
+      "source_file": "complex_000170.pt",
+      "source_id": "SDIA_ECOLI_1_171_0/4y17_B_rec_4y15_482_lig_tt_min_0.sdf",
+      "n_generated": 100,
+      "sdf_file": "complex_000170.sdf"
+    },
+    {
+      "pocket_name": "complex_000177",
+      "source_file": "complex_000177.pt",
+      "source_id": "DPP2_HUMAN_27_492_0/3n0t_A_rec_3n0t_opy_lig_tt_min_0.sdf",
+      "n_generated": 96,
+      "sdf_file": "complex_000177.sdf"
+    },
+    {
+      "pocket_name": "complex_000179",
+      "source_file": "complex_000179.pt",
+      "source_id": "VAOX_PENSI_1_560_0/1qlu_A_rec_1qlu_eug_lig_tt_min_0.sdf",
+      "n_generated": 100,
+      "sdf_file": "complex_000179.sdf"
+    },
+    {
+      "pocket_name": "complex_000191",
+      "source_file": "complex_000191.pt",
+      "source_id": "EFTU1_ECOLI_2_178_0/2hcj_B_rec_2hcj_gdp_lig_tt_docked_0.sdf",
+      "n_generated": 100,
+      "sdf_file": "complex_000191.sdf"
+    },
+    {
+      "pocket_name": "complex_000193",
+      "source_file": "complex_000193.pt",
+      "source_id": "F16P1_HUMAN_1_338_0/2fix_H_rec_3kc0_2t5_lig_it2_tt_docked_13.sdf",
+      "n_generated": 99,
+      "sdf_file": "complex_000193.sdf"
+    },
+    {
+      "pocket_name": "complex_000223",
+      "source_file": "complex_000223.pt",
+      "source_id": "IMA1_HUMAN_68_497_0/4u5v_A_rec_4u58_3c6_lig_tt_min_0.sdf",
+      "n_generated": 100,
+      "sdf_file": "complex_000223.sdf"
+    },
+    {
+      "pocket_name": "complex_000236",
+      "source_file": "complex_000236.pt",
+      "source_id": "NOS1_HUMAN_302_723_0/3nly_A_rec_5unv_8j7_lig_tt_min_0.sdf",
+      "n_generated": 98,
+      "sdf_file": "complex_000236.sdf"
+    },
+    {
+      "pocket_name": "complex_000266",
+      "source_file": "complex_000266.pt",
+      "source_id": "NOS2_HUMAN_78_505_0/3e7g_A_rec_3e7g_at2_lig_tt_docked_0.sdf",
+      "n_generated": 98,
+      "sdf_file": "complex_000266.sdf"
+    },
+    {
+      "pocket_name": "complex_000269",
+      "source_file": "complex_000269.pt",
+      "source_id": "PAC_ECOLX_27_846_0/1gk9_A_rec_1fxh_pac_lig_tt_docked_0.sdf",
+      "n_generated": 97,
+      "sdf_file": "complex_000269.sdf"
+    },
+    {
+      "pocket_name": "complex_000292",
+      "source_file": "complex_000292.pt",
+      "source_id": "POL_FOAMV_861_1060_0/3oya_A_rec_5uop_8g4_lig_tt_min_0.sdf",
+      "n_generated": 99,
+      "sdf_file": "complex_000292.sdf"
+    },
+    {
+      "pocket_name": "complex_000305",
+      "source_file": "complex_000305.pt",
+      "source_id": "TNKS2_HUMAN_948_1162_0/4bfp_A_rec_4bu9_08c_lig_tt_min_0.sdf",
+      "n_generated": 99,
+      "sdf_file": "complex_000305.sdf"
+    },
+    {
+      "pocket_name": "complex_000335",
+      "source_file": "complex_000335.pt",
+      "source_id": "BGAT_HUMAN_63_353_0/1r7t_A_rec_4y64_48c_lig_tt_min_0.sdf",
+      "n_generated": 100,
+      "sdf_file": "complex_000335.sdf"
+    },
+    {
+      "pocket_name": "complex_000363",
+      "source_file": "complex_000363.pt",
+      "source_id": "Y635_MYCTU_1_158_0/4rlt_A_rec_4rlt_fse_lig_tt_min_0.sdf",
+      "n_generated": 95,
+      "sdf_file": "complex_000363.sdf"
+    },
+    {
+      "pocket_name": "complex_000374",
+      "source_file": "complex_000374.pt",
+      "source_id": "ABL2_HUMAN_274_551_0/2xyn_A_rec_4xli_1n1_lig_tt_min_0.sdf",
+      "n_generated": 98,
+      "sdf_file": "complex_000374.sdf"
+    },
+    {
+      "pocket_name": "complex_000376",
+      "source_file": "complex_000376.pt",
+      "source_id": "ACE_HUMAN_650_1230_0/1uze_A_rec_1uzf_mco_lig_tt_min_0.sdf",
+      "n_generated": 99,
+      "sdf_file": "complex_000376.sdf"
+    },
+    {
+      "pocket_name": "complex_000382",
+      "source_file": "complex_000382.pt",
+      "source_id": "AKT1_HUMAN_1_137_0/4ejn_A_rec_5kcv_6s1_lig_tt_docked_1.sdf",
+      "n_generated": 100,
+      "sdf_file": "complex_000382.sdf"
+    },
+    {
+      "pocket_name": "complex_000387",
+      "source_file": "complex_000387.pt",
+      "source_id": "ATS5_HUMAN_262_480_0/3hy7_A_rec_3b8z_294_lig_tt_min_0.sdf",
+      "n_generated": 99,
+      "sdf_file": "complex_000387.sdf"
+    },
+    {
+      "pocket_name": "complex_000394",
+      "source_file": "complex_000394.pt",
+      "source_id": "BAPA_SPHXN_30_402_0/3n2w_A_rec_3n33_aes_lig_tt_docked_0.sdf",
+      "n_generated": 96,
+      "sdf_file": "complex_000394.sdf"
+    },
+    {
+      "pocket_name": "complex_000400",
+      "source_file": "complex_000400.pt",
+      "source_id": "CAT_ECOLX_1_219_0/1q23_C_rec_1q23_fua_lig_tt_min_0.sdf",
+      "n_generated": 99,
+      "sdf_file": "complex_000400.sdf"
+    },
+    {
+      "pocket_name": "complex_000403",
+      "source_file": "complex_000403.pt",
+      "source_id": "CHIB1_ASPFM_39_433_0/3ch9_B_rec_2a3a_tep_lig_tt_min_0.sdf",
+      "n_generated": 98,
+      "sdf_file": "complex_000403.sdf"
+    },
+    {
+      "pocket_name": "complex_000411",
+      "source_file": "complex_000411.pt",
+      "source_id": "CHIB_SERMA_1_499_0/1h0i_A_rec_1e6z_ngo_lig_it2_tt_docked_15.sdf",
+      "n_generated": 96,
+      "sdf_file": "complex_000411.sdf"
+    },
+    {
+      "pocket_name": "complex_000426",
+      "source_file": "complex_000426.pt",
+      "source_id": "COAA_MYCTU_1_312_0/3avo_A_rec_3avo_pau_lig_tt_min_0.sdf",
+      "n_generated": 99,
+      "sdf_file": "complex_000426.sdf"
+    },
+    {
+      "pocket_name": "complex_000456",
+      "source_file": "complex_000456.pt",
+      "source_id": "DFPA_LOLVU_2_314_0/2gvx_A_rec_2gvv_di9_lig_tt_min_0.sdf",
+      "n_generated": 96,
+      "sdf_file": "complex_000456.sdf"
+    },
+    {
+      "pocket_name": "complex_000472",
+      "source_file": "complex_000472.pt",
+      "source_id": "DIDH_RAT_1_319_0/1afs_A_rec_1afs_tes_lig_tt_min_0.sdf",
+      "n_generated": 97,
+      "sdf_file": "complex_000472.sdf"
+    },
+    {
+      "pocket_name": "complex_000473",
+      "source_file": "complex_000473.pt",
+      "source_id": "GLMU_STRPN_2_459_0/4ac3_A_rec_4ac3_r83_lig_tt_docked_1.sdf",
+      "n_generated": 97,
+      "sdf_file": "complex_000473.sdf"
+    },
+    {
+      "pocket_name": "complex_000477",
+      "source_file": "complex_000477.pt",
+      "source_id": "GSTP1_HUMAN_2_210_0/3gss_A_rec_3ie3_gsh_lig_tt_min_0.sdf",
+      "n_generated": 99,
+      "sdf_file": "complex_000477.sdf"
+    },
+    {
+      "pocket_name": "complex_000506",
+      "source_file": "complex_000506.pt",
+      "source_id": "HDAC8_HUMAN_1_377_0/2v5x_A_rec_5fcw_5ya_lig_tt_min_0.sdf",
+      "n_generated": 100,
+      "sdf_file": "complex_000506.sdf"
+    },
+    {
+      "pocket_name": "complex_000535",
+      "source_file": "complex_000535.pt",
+      "source_id": "BSD_ASPTE_1_130_0/2z3h_A_rec_1wn6_bst_lig_tt_docked_3.sdf",
+      "n_generated": 96,
+      "sdf_file": "complex_000535.sdf"
+    },
+    {
+      "pocket_name": "complex_000540",
+      "source_file": "complex_000540.pt",
+      "source_id": "HMD_METJA_1_358_0/3f46_A_rec_3daf_feg_lig_tt_min_0.sdf",
+      "n_generated": 98,
+      "sdf_file": "complex_000540.sdf"
+    }
+  ]
+}
