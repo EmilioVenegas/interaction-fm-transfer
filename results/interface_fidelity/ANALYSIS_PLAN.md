@@ -130,11 +130,19 @@ effect, and is excluded from FP-B's denominator.
 Two things make this legitimate, and both must hold:
 
 - **The filter never sees the arms.** Ceiling comes from true binders, and the
-  placement null is pooled across all seven arms so no arm's inclusion depends on
-  itself. A filter computed from arm-independent quantities cannot select for an
-  effect. *This property is the whole justification — if the null is ever
-  computed from one arm, the filter becomes a selection bias and the screen is
-  void.*
+  placement null is pooled across arms so no arm's inclusion depends on itself. A
+  filter computed from arm-independent quantities cannot select for an effect.
+  *This property is the whole justification — if the null is ever computed from
+  one arm, the filter becomes a selection bias and the screen is void.*
+
+  **Amendment, 2026-08-16, before the gates were run:** the null pools the **six
+  λ = 0.7 arms only** (3 control + 3 critic), not all seven. Two reasons, both
+  stricter than the original rule: it is balanced between arm *types*, and it
+  excludes `critic_lambda20_r0` — the treatment arm of the primary comparison —
+  entirely, so the screen cannot see the arm whose effect it gates. Sizes are
+  matched across all seven (20.28–20.58 heavy atoms), so the pooled null remains
+  representative of λ = 20's molecules. Recorded here rather than in the results,
+  because a rule changed after seeing numbers is not a rule.
 - **The comparison is against a per-pocket scale, not the arm-level one.**
   `s_arm(cell)` — the noise floor in the decision table — is the spread of a mean
   over 44 pockets and is smaller by roughly √44. Screening a per-pocket range
@@ -241,6 +249,22 @@ interpretable.
    whose molecules protonate less often is being scored on a biased subsample),
    so require the arms to agree within 2 percentage points and the absolute rate
    to stay under 10%, matching the NaN gate used for docking.
+
+   **Amendment, 2026-08-16, written before the FP-B numbers existed.** The
+   implementation applies one valence-repair pass before giving up on a molecule
+   — over-valent N/O with no formal-charge block is the standard CrossDocked
+   artefact (it is what `complex_000148`'s *reference* ligand suffers from), and
+   refusing to repair it would reject good molecules. Repairs are counted
+   separately from hard failures.
+
+   That creates a loophole in the gate as originally written: if the critic arm
+   emits more over-valent nitrogens and every one is repaired, the hard-failure
+   rate stays equal across arms and the signal hides in the repair count. So the
+   **≤10% absolute and ≤2 percentage-point differential thresholds apply to the
+   union — `fail_read_sanitize + fail_addhs + repaired`, every molecule that did
+   not sanitize as written** — and the three buckets are also reported
+   separately. Chemical degradation that is *repairable* is still chemical
+   degradation, and the gate must be able to see it.
 
    **A failure of this gate in the critic arm is a finding, not an abort.** If
    λ = 20 protonates at 11% failure against the control's 2%, the critic is
