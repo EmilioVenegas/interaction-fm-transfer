@@ -64,9 +64,6 @@ pockets:
 Either outcome is worth reporting. The current state — QED up, affinity unmeasured —
 is the one state that supports no conclusion.
 
-`docking/scores.csv` holds Vina scores for 50 ligands from a single generation run.
-It is **not** the matched comparison and should not be read as one.
-
 ## Root cause of the null pocket-specificity
 
 The likely explanation is upstream of the model. `scripts/process_expert_atomica.py`

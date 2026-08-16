@@ -116,3 +116,85 @@ washes out, the honest statement is that the critic is neutral at λ = 0.7.
   larger λ was never tried, and the critic's influence may simply be too small
   to matter — its gradient share was set to ~10% at low noise.
 - Cross-docking specificity is a proxy for pocket fit, not a binding assay.
+
+---
+
+# Retracted: `specificity_r0_matched*.csv` is an invalid run, kept deliberately
+
+**Do not use these three files as evidence.** `specificity_r0_matched.csv`,
+`_paired.csv` and `_raw.csv` are retained because the way they failed is a
+methodological result, not because their numbers mean anything. They are the
+matched-decoy re-measurement of the λ = 0.7 arms, and they failed two of the
+three validity checks pre-registered in `ANALYSIS_PLAN.md`.
+
+## What it reported, and why that is a trap
+
+It produced **+0.157 ± 0.064, 24/38 pockets improved, p = 0.043** — the first
+nominally significant positive in this project and a sign flip of the −0.158
+headline. It is not usable.
+
+Note also that the addendum to `ANALYSIS_PLAN.md` had already pre-registered
+that the point estimate of this run was *not to be read*: the subsampling rng
+moved to its own stream, so the 20 molecules are redrawn and the estimate is a
+near-independent draw rather than a correction. "Returning at +0.1 is not a
+reversal" is in the plan, written before the run finished. Only the error bar
+and the fraction improved were ever readable. The number was tempting precisely
+because it was significant, and the pre-registration is what disarmed it.
+
+## Why it is invalid
+
+Failure rates by arm across every docking run:
+
+| run | `n_jobs` | NaN by arm |
+|---|---|---|
+| r0 original | 16 | 0.00% / 0.00% |
+| r1 | 16 | 2.84% / 1.70% |
+| r2 | 16 | 0.00% / 0.00% |
+| λ = 20 (matched) | 16 | 0.00% / 0.00% |
+| **r0 matched** | **28** | **15.34% / 1.14%** |
+
+One smina call docks all 20 of a pocket's molecules serially, ~700 s nominal.
+Raising `n_jobs` from 16 to 28 on a 32-core machine pushed the slower pockets
+past the 1800 s timeout, and a timeout returns NaN for the **entire cell**.
+
+The damage landed asymmetrically. Ligand size and flexibility are effectively
+identical between the arms (20.55 vs 20.58 heavy atoms, 4.29 vs 4.39 rotatable
+bonds), so the 13× gap is not the molecules — it tracks **which arm ran second**,
+later on a machine that had been at full load for hours. Five pockets lost their
+own-pocket docking in the control arm and none in the critic arm, so the paired
+comparison ran on 38 of 44 pockets with attrition concentrated in one arm.
+
+That fails validity check 2 (NaN below 10%) and validity check 3 (both arms
+contributing the same pockets). By the plan's own rule the result is about the
+harness, not the critic.
+
+## Two lessons, both carried forward
+
+**The NaN criterion was wrong, not just the timeout.** "NaN below 10%" was
+written assuming failures are random. They are not — they concentrate in
+whichever arm runs second under drifting load. A 6% rate split 5.5% / 0.5% would
+pass that gate and be just as biased. **Any future docking run should require 0%
+NaN, or per-arm equality, rather than a pooled ceiling.**
+
+**Raising the timeout is necessary but not sufficient.** `77d76e0` raised it to
+5400 s and returned `n_jobs` to 16. Because smina at `--seed 0 --cpu 1` is
+deterministic, contention cannot change scores — only whether a cell finishes —
+so a timeout that never fires does fix this. But the *ordering* asymmetry remains
+latent for any future time-varying condition. The structural fix, not yet
+implemented, is to **interleave the work queue by (pocket, arm)** instead of
+running arm A then arm B, so that drift hits both arms equally.
+
+A timeout that fires in normal operation is not a safety net; it is a silent
+sampler.
+
+## Status
+
+The requeued run (`specificity_r0_matched2.csv`, `n_jobs` 16, timeout 5400 s) was
+killed ~36 minutes in when the ATOMICA direction closed, so it was never written.
+The λ = 0.7 matched-decoy comparison is therefore **unresolved**, and the r0
+figure quoted above in this document retains its independent-decoy confound.
+
+**This costs the write-up nothing.** The paper's specificity claim rests on the
+λ = 20 arm (−0.055 ± 0.047 against an MDE of 0.131), which ran at `n_jobs` 16
+with 0.00% NaN in both arms, and on the variance decomposition, which is
+computed from the r0 raw scores independently of this run.

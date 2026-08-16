@@ -738,3 +738,11 @@ evidence.
 
 The adapter code stays in history. It should not be extended without fixing the three
 architecture defects first, and the current plan does not require it at all.
+
+## Additional Findings (from overnight & handoff logs)
+
+- **The critic does not reduce its own objective against a matched control.** Over 475 paired samples, identical complexes/timesteps/noise, the distance metric shift flips signs across seeds: −0.000197 at r0 (p=0.006), +0.000133 at r1 (p=0.030), −0.000045 at r2.
+- The previously logged −37.9% metric fall was a seed artefact. It reproduced at neither other seed (−7.5%, −3.6%), and the control had never logged that metric for comparison.
+- **94% of the variance in the specificity effect is harness sampling noise** — 49% from independent decoy draws, 45% from the 20-molecule subsample.
+- **Precision after decoy fix:** By drawing decoys once and sharing across arms, per-pocket standard deviation improved from 0.738 to 0.310, and MDE at 80% power improved from 0.312 to 0.131.
+- **At λ = 14 (high dose):** The critic genuinely reduces its own objective (2.8 control-seed sd below mean, p=7e-7), but it **costs diffusion loss** (+0.0078), **docks 0.232 kcal/mol worse** into its own pocket (p=0.001), and **does not help pocket specificity** (−0.055 ± 0.047, 17/44 pockets, p=0.21, against MDE 0.131).

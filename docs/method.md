@@ -35,9 +35,6 @@ LigandPocketDDPM  (PyTorch Lightning)
   EGNNDynamics + SE3EquivariantCrossAttention  →  ConditionalDDPM
     ▼
 generate_ligands.py / optimize.py  →  SDF
-    │  rl_loop/RL_loop.py (optional)
-    ▼
-ADMET-AI scoring → REOS filter → Tanimoto diversity → top-k
 ```
 
 ## The conditioning mechanism

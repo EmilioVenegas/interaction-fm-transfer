@@ -1,33 +1,24 @@
 cff-version: 1.2.0
 title: >-
-  ATOMICA-Diffusion: conditioning SE(3)-equivariant generative
-  design on pretrained interaction representations
+  interaction-fm-transfer: Within-system discrimination does not imply cross-system transfer
 message: >-
   If you use this software, please cite it alongside the
   ATOMICA and DiffSBDD papers listed in THIRD_PARTY_NOTICES.md.
 type: software
 authors:
-  - given-names: Emilio Alonso
-    family-names: Venegas-Hernandez
+  - given-names: Emilio A.
+    family-names: Venegas
     email: emiliovenegas10@gmail.com
-    orcid: null
+    orcid: 0000-0002-7689-9185
 repository-code: >-
-  https://github.com/EmilioVenegas/ATOMICA-Diffusion-Antibiotic-design
+  https://github.com/EmilioVenegas/interaction-fm-transfer
 abstract: >-
-  An SE(3)-equivariant cross-attention adapter that conditions a
-  geometric diffusion model for structure-based drug design
-  (DiffSBDD) on per-atom pocket embeddings from ATOMICA, a
-  foundation model pretrained on molecular interaction
-  interfaces. Both pretrained models are frozen, so the ablation
-  isolates the effect of the conditioning signal. Over 100
-  held-out CrossDocked pockets the adapter raises median
-  drug-likeness (QED +13.9% relative) at a cost in chemical
-  diversity (-6.4%).
+  Code and evidence supporting the study on the transferability of pretrained molecular-interaction foundation models in structure-based generative design.
 keywords:
   - structure-based drug design
-  - diffusion models
-  - SE(3)-equivariance
-  - geometric deep learning
+  - generative models
   - foundation models
-  - antibiotic discovery
+  - molecular interactions
+  - binding specificity
+  - detection limits
 license: MIT

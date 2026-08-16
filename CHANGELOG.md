@@ -6,6 +6,8 @@ Notable changes to this project. Format loosely follows
 ## [Unreleased]
 
 ### Added
+- **Successor Repository**: `interaction-fm-transfer`. This repository succeeds the original class project on antibiotic design (`ATOMICA-Diffusion-Antibiotic-design`), reflecting its evolution into a controlled study of foundation model transferability.
+- `paper/` directory containing the Quarto preprint manuscript and bibliography.
 - `LICENSE` (MIT) and `THIRD_PARTY_NOTICES.md` — the repository vendors two MIT
   codebases and previously carried no license of its own or attribution for them.
 - `MODIFICATIONS.md` — itemises all 853 changed lines across 11 files in the
