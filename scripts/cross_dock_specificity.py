@@ -144,31 +144,50 @@ def dock_one(args):
     return pocket, receptor, scores
 
 
-def build_pairs(sdf_by_pocket, receptors, n_decoy, rng, exhaustiveness, seed,
-                pocket_targets=None):
-    """(molecule set, receptor) pairs: each pocket against its own and n_decoy others.
+def choose_decoys(receptors, n_decoy, rng, pocket_targets=None):
+    """pocket -> the decoy pockets it is docked against, chosen ONCE for all arms.
 
     Decoy pockets are drawn from **different targets** when `pocket_targets` is
     available. CrossDocked holds many complexes per target, so without that
     constraint a "decoy" pocket can be the same protein in another docked pose --
     which a pocket-specific molecule should fit, washing out the contrast the
     metric exists to measure.
+
+    Every arm shares this mapping. It used to be drawn per arm from an rng that
+    the arms consumed in turn, so no two arms were ever docked against the same
+    decoys -- 0 of 44 pockets shared a decoy set between the critic and control
+    arms. That is not a bias, but it puts the whole between-decoy variance into
+    a comparison meant to isolate the objective: a pocket's score varies by 0.64
+    kcal/mol across decoy receptors, so two arms drawing independently differ by
+    ~0.52 kcal/mol per pocket from the draw alone, against reported effects of
+    -0.158 (r0) and -0.201 (r1). Sharing the draw removes that term entirely and
+    costs nothing.
     """
-    pockets = sorted(sdf_by_pocket)
-    pairs = []
+    pockets = sorted(receptors)
+    decoys = {}
     for pocket in pockets:
-        if pocket not in receptors:
-            continue
         own_target = (pocket_targets or {}).get(pocket)
         others = [
             p for p in pockets
-            if p != pocket and p in receptors
+            if p != pocket
             and (own_target is None
                  or (pocket_targets or {}).get(p) != own_target)
         ]
-        chosen = rng.choice(others, size=min(n_decoy, len(others)), replace=False) \
-            if others else []
-        for receptor in [pocket, *chosen]:
+        decoys[pocket] = list(
+            rng.choice(others, size=min(n_decoy, len(others)), replace=False)
+        ) if others else []
+    return decoys
+
+
+def build_pairs(sdf_by_pocket, receptors, decoys, exhaustiveness, seed):
+    """(molecule set, receptor) pairs: each pocket against its own and its decoys."""
+    pairs = []
+    for pocket in sorted(sdf_by_pocket):
+        if pocket not in receptors:
+            continue
+        for receptor in [pocket, *decoys.get(pocket, [])]:
+            if receptor not in receptors:
+                continue
             pdb, box = receptors[receptor]
             pairs.append((sdf_by_pocket[pocket], pdb, box, pocket, receptor,
                           exhaustiveness, seed))
@@ -320,9 +339,20 @@ def main():
               f"same protein, which understates specificity. Regenerate with "
               f"scripts/extract_pocket_pdbs.py.")
 
-    rng = np.random.default_rng(args.seed)
+    # Two independent streams. The decoy draw must not depend on how many
+    # random numbers the molecule subsampling happened to consume first, or the
+    # arms desynchronise and each gets its own decoy set -- which is exactly
+    # what happened in the r0/r1/r2 runs.
+    decoy_rng = np.random.default_rng(args.seed)
+    rng = np.random.default_rng(args.seed + 10_000)
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    decoys = choose_decoys(receptors, args.n_decoy_pockets, decoy_rng,
+                           pocket_targets=pocket_targets)
+    shared = sum(1 for v in decoys.values() if v)
+    print(f"Decoy pockets drawn once and shared by every arm "
+          f"({shared} pockets with decoys).")
 
     arm_specificity, raw_rows = {}, []
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -339,9 +369,8 @@ def main():
             if not sdf_by_pocket:
                 print(f"Arm {name!r}: no usable SDFs under {path}")
                 continue
-            pairs = build_pairs(sdf_by_pocket, receptors, args.n_decoy_pockets,
-                                rng, args.exhaustiveness, args.seed,
-                                pocket_targets=pocket_targets)
+            pairs = build_pairs(sdf_by_pocket, receptors, decoys,
+                                args.exhaustiveness, args.seed)
             print(f"\nArm {name!r}: {len(sdf_by_pocket)} pockets, {len(pairs)} "
                   f"docking jobs ({1 + args.n_decoy_pockets} receptors each)")
 
