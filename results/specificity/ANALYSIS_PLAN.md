@@ -95,3 +95,77 @@ Kill them with `pkill -f train.py` if they are not wanted.
 - 20 of ~95 molecules per pocket are docked, randomly subsampled at seed 0.
 - Cross-docking specificity is a proxy for pocket fit, not a measure of binding.
   Nothing here is an affinity claim.
+
+---
+
+# Addendum, 2026-08-15: the decoy confound, and predictions registered before
+# the re-measurement
+
+Written and committed **before** the matched-decoy run finished, for the same
+reason as the original plan.
+
+## What was wrong
+
+`cross_dock_specificity.py` drew decoy pockets inside the per-arm loop, from one
+rng the arms consumed in turn. How many random numbers the molecule subsampling
+happened to use therefore decided what the next arm got, and **0 of 44 pockets
+shared a decoy set between the critic and the control** — in the r0, r1 and r2
+runs alike.
+
+Variance decomposition of the r0 per-pocket delta, computed from
+`specificity_raw.csv`:
+
+| source | per-pocket sd | share of variance |
+|---|---|---|
+| independent decoy draws (3 per pocket) | 0.519 | **49%** |
+| the 20-molecule subsample (of ~95) | 0.495 | **45%** |
+| observed total | 0.738 | 100% |
+
+Molecule-to-molecule score sd within one pocket-receptor cell is 1.356 kcal/mol.
+**94% of the variance in the reported effect is harness sampling noise**, leaving
+sd ≈ 0.18 for any real difference between arms.
+
+The reported effects are −0.158 (r0) and −0.201 (r1). Both sit inside what the
+decoy assignment alone produces (~0.52 per pocket between two arms drawing
+independently).
+
+**The seed replicates could not have caught this.** They were given the identical
+rng stream deliberately, so only the trained model would differ — which also
+handed every replicate the *same* decoy assignment. r0 and r1 agreeing to within
+0.04 kcal/mol replicates the confound, not the effect. That agreement is what
+made it visible: the paired critic-distance measurement shows these two arms are
+nearly indistinguishable, and nearly indistinguishable models should not produce
+a stable specificity gap.
+
+Fixed in `af0ebde`: decoys are drawn once, before any arm, from an rng
+independent of the subsampling stream, and shared by every arm.
+
+## Predictions, registered in advance
+
+For `specificity_r0_matched.csv` — same molecules, same pockets, same
+parameters, decoys now shared between the arms:
+
+1. **The error bar shrinks by ~30%.** Per-pocket sd 0.738 → ~0.525, sem
+   0.111 → ~0.079. This is close to arithmetic and is the point of the fix.
+2. **The point estimate is a near-independent redraw, not a correction.** The
+   subsampling rng moved to its own stream, so the 20 molecules are redrawn too;
+   between them the two noise terms are 94% of the variance. Expected delta in
+   **[−0.2, +0.2]**, pockets improved **~22/44**, **p > 0.2**.
+3. **Returning near −0.16 is not replication** — it is one draw agreeing with
+   another. **Returning at +0.1 is not a reversal.** Only the error bar and the
+   fraction improved should be read.
+4. **The own-pocket difference is unaffected by the decoy fix** (both arms always
+   docked into their own pocket); any change in the delta must come from the
+   cross term.
+
+## How this changes the decision rules
+
+The branch thresholds in the original plan stand, but they are now applied to a
+measurement whose MDE is known: **0.31 kcal/mol at 80% power** with 44 pockets
+and 20 molecules. Every effect discussed in this project so far is below that.
+The correct statement for any null here is "no effect large enough for this
+design to see", with the bound quoted — never "no effect".
+
+Getting under that bound needs molecules, not seeds: docking ~95 per pocket
+instead of 20 cuts the molecule term 2.2× and takes the MDE to ~0.12. That is
+4.75× the docking cost, which is why GPU docking is being set up.
