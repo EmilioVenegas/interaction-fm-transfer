@@ -124,7 +124,14 @@ def dock_one(args):
             "--out", str(Path(tmpdir) / "out.sdf"),
         ]
         try:
-            proc = subprocess.run(cmd, capture_output=True, text=True, timeout=1800)
+            # 5400s, not 1800s. One smina call docks every molecule of a pocket
+            # serially -- 20 molecules at ~35 core-seconds is ~700s nominal, and
+            # under contention a slow pocket approaches half an hour. At
+            # n_jobs 28 on 32 cores that crossed the old 1800s limit and turned
+            # whole pockets into NaN, asymmetrically between arms, because the
+            # arm that happened to run second ran slower. A timeout that fires
+            # in normal operation is not a safety net, it is a silent sampler.
+            proc = subprocess.run(cmd, capture_output=True, text=True, timeout=5400)
         except FileNotFoundError:
             raise RuntimeError(
                 f"smina not found at '{SMINA_BIN}'. Install with "
