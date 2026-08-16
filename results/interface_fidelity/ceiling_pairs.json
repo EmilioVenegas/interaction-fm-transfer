@@ -1,0 +1,684 @@
+{
+ "complex_000001": {
+  "target": "KS6A3_HUMAN_41_357_0",
+  "receptor_stem": "4nus_A_rec",
+  "own_ligcode": "2nk",
+  "others": {
+   "583": {
+    "lmdb_key": "111017",
+    "ligand_filename": "KS6A3_HUMAN_41_357_0/4nus_A_rec_5d9l_583_lig_tt_docked_0.sdf"
+   }
+  }
+ },
+ "complex_000026": {
+  "target": "CD38_HUMAN_44_300_0",
+  "receptor_stem": "2ef1_B_rec",
+  "own_ligcode": "nmn",
+  "others": {
+   "n": {
+    "lmdb_key": "11313",
+    "ligand_filename": "CD38_HUMAN_44_300_0/2ef1_B_rec_3dzi_n_lig_tt_docked_0.sdf"
+   },
+   "cvr": {
+    "lmdb_key": "11318",
+    "ligand_filename": "CD38_HUMAN_44_300_0/2ef1_B_rec_3u4i_cvr_lig_tt_docked_0.sdf"
+   }
+  }
+ },
+ "complex_000051": {
+  "target": "M3K14_HUMAN_321_678_0",
+  "receptor_stem": "4g3d_A_rec",
+  "own_ligcode": "13v",
+  "others": {}
+ },
+ "complex_000059": {
+  "target": "MENE_BACSU_2_486_0",
+  "receptor_stem": "5x8f_C_rec",
+  "own_ligcode": "amp",
+  "others": {}
+ },
+ "complex_000063": {
+  "target": "NAGZ_VIBCH_1_330_0",
+  "receptor_stem": "1tr9_A_rec",
+  "own_ligcode": "vpu",
+  "others": {}
+ },
+ "complex_000069": {
+  "target": "NQO1_HUMAN_2_274_0",
+  "receptor_stem": "5eai_B_rec",
+  "own_ligcode": "cc2",
+  "others": {
+   "e6a": {
+    "lmdb_key": "123719",
+    "ligand_filename": "NQO1_HUMAN_2_274_0/5eai_B_rec_5eai_e6a_lig_tt_docked_5.sdf"
+   }
+  }
+ },
+ "complex_000085": {
+  "target": "NR1H4_HUMAN_258_486_0",
+  "receptor_stem": "4qe6_A_rec",
+  "own_ligcode": "iu5",
+  "others": {
+   "chc": {
+    "lmdb_key": "124427",
+    "ligand_filename": "NR1H4_HUMAN_258_486_0/4qe6_A_rec_1osv_chc_lig_tt_min_0.sdf"
+   },
+   "jn3": {
+    "lmdb_key": "124458",
+    "ligand_filename": "NR1H4_HUMAN_258_486_0/4qe6_A_rec_4qe6_jn3_lig_tt_min_0.sdf"
+   }
+  }
+ },
+ "complex_000112": {
+  "target": "OLIAC_CANSA_1_101_0",
+  "receptor_stem": "5b0a_A_rec",
+  "own_ligcode": "4mx",
+  "others": {}
+ },
+ "complex_000117": {
+  "target": "PA21B_PIG_23_146_0",
+  "receptor_stem": "3o4m_A_rec",
+  "own_ligcode": "mcw",
+  "others": {
+   "nla": {
+    "lmdb_key": "126902",
+    "ligand_filename": "PA21B_PIG_23_146_0/3o4m_A_rec_4o1y_nla_lig_tt_min_0.sdf"
+   },
+   "caq": {
+    "lmdb_key": "126906",
+    "ligand_filename": "PA21B_PIG_23_146_0/3o4m_A_rec_3o4m_caq_lig_tt_min_0.sdf"
+   },
+   "ber": {
+    "lmdb_key": "126919",
+    "ligand_filename": "PA21B_PIG_23_146_0/3o4m_A_rec_4dbk_ber_lig_tt_docked_13.sdf"
+   }
+  }
+ },
+ "complex_000140": {
+  "target": "PHKG1_RABIT_6_296_ATPsite_0",
+  "receptor_stem": "1phk_A_rec",
+  "own_ligcode": "atp",
+  "others": {}
+ },
+ "complex_000141": {
+  "target": "PLCD1_RAT_134_756_0",
+  "receptor_stem": "1qat_B_rec",
+  "own_ligcode": "cip",
+  "others": {
+   "ip2": {
+    "lmdb_key": "136616",
+    "ligand_filename": "PLCD1_RAT_134_756_0/1qat_B_rec_1djz_ip2_lig_tt_min_0.sdf"
+   }
+  }
+ },
+ "complex_000145": {
+  "target": "COTA_BACSU_1_513_0",
+  "receptor_stem": "4q89_A_rec",
+  "own_ligcode": "sxx",
+  "others": {}
+ },
+ "complex_000148": {
+  "target": "PTGIS_HUMAN_20_500_0",
+  "receptor_stem": "3b6h_A_rec",
+  "own_ligcode": "mxd",
+  "others": {}
+ },
+ "complex_000149": {
+  "target": "QPCT_HUMAN_33_361_0",
+  "receptor_stem": "2zef_A_rec",
+  "own_ligcode": "bgt",
+  "others": {
+   "1bn": {
+    "lmdb_key": "145245",
+    "ligand_filename": "QPCT_HUMAN_33_361_0/2zef_A_rec_2afx_1bn_lig_tt_min_0.sdf"
+   }
+  }
+ },
+ "complex_000165": {
+  "target": "RIBB_VIBCH_2_218_0",
+  "receptor_stem": "4p6p_A_rec",
+  "own_ligcode": "5rp",
+  "others": {}
+ },
+ "complex_000170": {
+  "target": "SDIA_ECOLI_1_171_0",
+  "receptor_stem": "4y17_B_rec",
+  "own_ligcode": "482",
+  "others": {}
+ },
+ "complex_000177": {
+  "target": "DPP2_HUMAN_27_492_0",
+  "receptor_stem": "3n0t_A_rec",
+  "own_ligcode": "opy",
+  "others": {}
+ },
+ "complex_000179": {
+  "target": "VAOX_PENSI_1_560_0",
+  "receptor_stem": "1qlu_A_rec",
+  "own_ligcode": "eug",
+  "others": {
+   "fcr": {
+    "lmdb_key": "163594",
+    "ligand_filename": "VAOX_PENSI_1_560_0/1qlu_A_rec_1e8g_fcr_lig_tt_min_0.sdf"
+   }
+  }
+ },
+ "complex_000191": {
+  "target": "EFTU1_ECOLI_2_178_0",
+  "receptor_stem": "2hcj_B_rec",
+  "own_ligcode": "gdp",
+  "others": {}
+ },
+ "complex_000193": {
+  "target": "F16P1_HUMAN_1_338_0",
+  "receptor_stem": "2fix_H_rec",
+  "own_ligcode": "2t5",
+  "others": {
+   "a74": {
+    "lmdb_key": "20313",
+    "ligand_filename": "F16P1_HUMAN_1_338_0/2fix_H_rec_2fie_a74_lig_tt_min_0.sdf"
+   },
+   "a37": {
+    "lmdb_key": "20355",
+    "ligand_filename": "F16P1_HUMAN_1_338_0/2fix_H_rec_2fhy_a37_lig_tt_min_0.sdf"
+   }
+  }
+ },
+ "complex_000223": {
+  "target": "IMA1_HUMAN_68_497_0",
+  "receptor_stem": "4u5v_A_rec",
+  "own_ligcode": "3c6",
+  "others": {
+   "3d6": {
+    "lmdb_key": "24986",
+    "ligand_filename": "IMA1_HUMAN_68_497_0/4u5v_A_rec_4u5l_3d6_lig_tt_min_0.sdf"
+   },
+   "3c5": {
+    "lmdb_key": "24991",
+    "ligand_filename": "IMA1_HUMAN_68_497_0/4u5v_A_rec_4u54_3c5_lig_tt_docked_1.sdf"
+   }
+  }
+ },
+ "complex_000236": {
+  "target": "NOS1_HUMAN_302_723_0",
+  "receptor_stem": "3nly_A_rec",
+  "own_ligcode": "8j7",
+  "others": {
+   "dxw": {
+    "lmdb_key": "31560",
+    "ligand_filename": "NOS1_HUMAN_302_723_0/3nly_A_rec_3tyo_dxw_lig_tt_min_0.sdf"
+   },
+   "w30": {
+    "lmdb_key": "31569",
+    "ligand_filename": "NOS1_HUMAN_302_723_0/3nly_A_rec_5fw0_w30_lig_tt_min_0.sdf"
+   },
+   "3xe": {
+    "lmdb_key": "31598",
+    "ligand_filename": "NOS1_HUMAN_302_723_0/3nly_A_rec_3nm0_3xe_lig_tt_min_0.sdf"
+   }
+  }
+ },
+ "complex_000266": {
+  "target": "NOS2_HUMAN_78_505_0",
+  "receptor_stem": "3e7g_A_rec",
+  "own_ligcode": "at2",
+  "others": {
+   "itu": {
+    "lmdb_key": "31633",
+    "ligand_filename": "NOS2_HUMAN_78_505_0/3e7g_A_rec_2nsi_itu_lig_tt_min_0.sdf"
+   },
+   "s71": {
+    "lmdb_key": "31651",
+    "ligand_filename": "NOS2_HUMAN_78_505_0/3e7g_A_rec_4cx7_s71_lig_tt_min_0.sdf"
+   }
+  }
+ },
+ "complex_000269": {
+  "target": "PAC_ECOLX_27_846_0",
+  "receptor_stem": "1gk9_A_rec",
+  "own_ligcode": "pac",
+  "others": {
+   "iph": {
+    "lmdb_key": "33471",
+    "ligand_filename": "PAC_ECOLX_27_846_0/1gk9_A_rec_1ai7_iph_lig_tt_docked_2.sdf"
+   },
+   "4hp": {
+    "lmdb_key": "33473",
+    "ligand_filename": "PAC_ECOLX_27_846_0/1gk9_A_rec_1ai6_4hp_lig_tt_docked_0.sdf"
+   }
+  }
+ },
+ "complex_000292": {
+  "target": "POL_FOAMV_861_1060_0",
+  "receptor_stem": "3oya_A_rec",
+  "own_ligcode": "8g4",
+  "others": {
+   "xxj": {
+    "lmdb_key": "39595",
+    "ligand_filename": "POL_FOAMV_861_1060_0/3oya_A_rec_5fro_xxj_lig_tt_min_0.sdf"
+   },
+   "zzx": {
+    "lmdb_key": "39630",
+    "ligand_filename": "POL_FOAMV_861_1060_0/3oya_A_rec_3oyl_zzx_lig_tt_min_0.sdf"
+   },
+   "x2p": {
+    "lmdb_key": "39634",
+    "ligand_filename": "POL_FOAMV_861_1060_0/3oya_A_rec_4ztf_x2p_lig_tt_min_0.sdf"
+   },
+   "8g1": {
+    "lmdb_key": "39635",
+    "ligand_filename": "POL_FOAMV_861_1060_0/3oya_A_rec_5uoq_8g1_lig_tt_min_0.sdf"
+   },
+   "bf3": {
+    "lmdb_key": "39642",
+    "ligand_filename": "POL_FOAMV_861_1060_0/3oya_A_rec_4be0_bf3_lig_tt_min_0.sdf"
+   },
+   "zzw": {
+    "lmdb_key": "39652",
+    "ligand_filename": "POL_FOAMV_861_1060_0/3oya_A_rec_3oyc_zzw_lig_tt_min_0.sdf"
+   },
+   "zyo": {
+    "lmdb_key": "39663",
+    "ligand_filename": "POL_FOAMV_861_1060_0/3oya_A_rec_3oyg_zyo_lig_tt_min_0.sdf"
+   },
+   "ci4": {
+    "lmdb_key": "39698",
+    "ligand_filename": "POL_FOAMV_861_1060_0/3oya_A_rec_4be1_ci4_lig_tt_min_0.sdf"
+   },
+   "4rt": {
+    "lmdb_key": "39729",
+    "ligand_filename": "POL_FOAMV_861_1060_0/3oya_A_rec_4ztj_4rt_lig_tt_min_0.sdf"
+   },
+   "cij": {
+    "lmdb_key": "39731",
+    "ligand_filename": "POL_FOAMV_861_1060_0/3oya_A_rec_4bdy_cij_lig_tt_min_0.sdf"
+   },
+   "xz2": {
+    "lmdb_key": "39783",
+    "ligand_filename": "POL_FOAMV_861_1060_0/3oya_A_rec_4be2_xz2_lig_tt_min_0.sdf"
+   },
+   "m76": {
+    "lmdb_key": "39791",
+    "ligand_filename": "POL_FOAMV_861_1060_0/3oya_A_rec_4ikf_m76_lig_tt_min_0.sdf"
+   },
+   "19c": {
+    "lmdb_key": "39817",
+    "ligand_filename": "POL_FOAMV_861_1060_0/3oya_A_rec_4bdz_19c_lig_tt_min_0.sdf"
+   },
+   "zzv": {
+    "lmdb_key": "39873",
+    "ligand_filename": "POL_FOAMV_861_1060_0/3oya_A_rec_3oyd_zzv_lig_tt_min_0.sdf"
+   },
+   "zyy": {
+    "lmdb_key": "39912",
+    "ligand_filename": "POL_FOAMV_861_1060_0/3oya_A_rec_3oye_zyy_lig_tt_docked_10.sdf"
+   }
+  }
+ },
+ "complex_000305": {
+  "target": "TNKS2_HUMAN_948_1162_0",
+  "receptor_stem": "4bfp_A_rec",
+  "own_ligcode": "08c",
+  "others": {
+   "16s": {
+    "lmdb_key": "48354",
+    "ligand_filename": "TNKS2_HUMAN_948_1162_0/4bfp_A_rec_4hlm_16s_lig_tt_min_0.sdf"
+   },
+   "1uw": {
+    "lmdb_key": "48368",
+    "ligand_filename": "TNKS2_HUMAN_948_1162_0/4bfp_A_rec_4l0i_1uw_lig_tt_min_0.sdf"
+   },
+   "28c": {
+    "lmdb_key": "48467",
+    "ligand_filename": "TNKS2_HUMAN_948_1162_0/4bfp_A_rec_4m7b_28c_lig_tt_min_0.sdf"
+   },
+   "m3f": {
+    "lmdb_key": "48483",
+    "ligand_filename": "TNKS2_HUMAN_948_1162_0/4bfp_A_rec_3mhj_m3f_lig_tt_min_0.sdf"
+   },
+   "a64": {
+    "lmdb_key": "48520",
+    "ligand_filename": "TNKS2_HUMAN_948_1162_0/4bfp_A_rec_4bs4_a64_lig_tt_min_0.sdf"
+   },
+   "1v1": {
+    "lmdb_key": "48546",
+    "ligand_filename": "TNKS2_HUMAN_948_1162_0/4bfp_A_rec_4l0v_1v1_lig_tt_min_0.sdf"
+   },
+   "f36": {
+    "lmdb_key": "48549",
+    "ligand_filename": "TNKS2_HUMAN_948_1162_0/4bfp_A_rec_4buf_f36_lig_tt_min_0.sdf"
+   },
+   "1ur": {
+    "lmdb_key": "48556",
+    "ligand_filename": "TNKS2_HUMAN_948_1162_0/4bfp_A_rec_4l09_1ur_lig_tt_min_0.sdf"
+   },
+   "92t": {
+    "lmdb_key": "48596",
+    "ligand_filename": "TNKS2_HUMAN_948_1162_0/4bfp_A_rec_5nob_92t_lig_tt_min_0.sdf"
+   },
+   "vt3": {
+    "lmdb_key": "48748",
+    "ligand_filename": "TNKS2_HUMAN_948_1162_0/4bfp_A_rec_4ui7_vt3_lig_tt_min_0.sdf"
+   },
+   "f33": {
+    "lmdb_key": "48767",
+    "ligand_filename": "TNKS2_HUMAN_948_1162_0/4bfp_A_rec_4buw_f33_lig_tt_min_0.sdf"
+   },
+   "16i": {
+    "lmdb_key": "48772",
+    "ligand_filename": "TNKS2_HUMAN_948_1162_0/4bfp_A_rec_4buv_16i_lig_tt_min_0.sdf"
+   },
+   "bj4": {
+    "lmdb_key": "48781",
+    "ligand_filename": "TNKS2_HUMAN_948_1162_0/4bfp_A_rec_4ui5_bj4_lig_tt_min_0.sdf"
+   },
+   "w8l": {
+    "lmdb_key": "48815",
+    "ligand_filename": "TNKS2_HUMAN_948_1162_0/4bfp_A_rec_4uvv_w8l_lig_tt_min_0.sdf"
+   },
+   "06r": {
+    "lmdb_key": "48826",
+    "ligand_filename": "TNKS2_HUMAN_948_1162_0/4bfp_A_rec_4ui3_06r_lig_tt_min_0.sdf"
+   },
+   "0e0": {
+    "lmdb_key": "48840",
+    "ligand_filename": "TNKS2_HUMAN_948_1162_0/4bfp_A_rec_5c5p_0e0_lig_tt_min_0.sdf"
+   },
+   "1uz": {
+    "lmdb_key": "48891",
+    "ligand_filename": "TNKS2_HUMAN_948_1162_0/4bfp_A_rec_4l0s_1uz_lig_tt_min_0.sdf"
+   },
+   "f38": {
+    "lmdb_key": "48907",
+    "ligand_filename": "TNKS2_HUMAN_948_1162_0/4bfp_A_rec_4buu_f38_lig_tt_min_0.sdf"
+   },
+   "32f": {
+    "lmdb_key": "48915",
+    "ligand_filename": "TNKS2_HUMAN_948_1162_0/4bfp_A_rec_4bus_32f_lig_tt_min_0.sdf"
+   },
+   "1v0": {
+    "lmdb_key": "48946",
+    "ligand_filename": "TNKS2_HUMAN_948_1162_0/4bfp_A_rec_4l0t_1v0_lig_tt_min_0.sdf"
+   },
+   "27f": {
+    "lmdb_key": "48978",
+    "ligand_filename": "TNKS2_HUMAN_948_1162_0/4bfp_A_rec_4bu8_27f_lig_tt_min_0.sdf"
+   },
+   "cdj": {
+    "lmdb_key": "48999",
+    "ligand_filename": "TNKS2_HUMAN_948_1162_0/4bfp_A_rec_4uvn_cdj_lig_tt_min_0.sdf"
+   },
+   "1ak": {
+    "lmdb_key": "49000",
+    "ligand_filename": "TNKS2_HUMAN_948_1162_0/4bfp_A_rec_4hyf_1ak_lig_tt_min_0.sdf"
+   },
+   "a63": {
+    "lmdb_key": "49011",
+    "ligand_filename": "TNKS2_HUMAN_948_1162_0/4bfp_A_rec_4l10_a63_lig_tt_min_0.sdf"
+   },
+   "w2e": {
+    "lmdb_key": "49015",
+    "ligand_filename": "TNKS2_HUMAN_948_1162_0/4bfp_A_rec_4bui_w2e_lig_tt_min_0.sdf"
+   },
+   "1v8": {
+    "lmdb_key": "49027",
+    "ligand_filename": "TNKS2_HUMAN_948_1162_0/4bfp_A_rec_4l2k_1v8_lig_tt_min_0.sdf"
+   },
+   "5zi": {
+    "lmdb_key": "49048",
+    "ligand_filename": "TNKS2_HUMAN_948_1162_0/4bfp_A_rec_5fpf_5zi_lig_tt_min_0.sdf"
+   },
+   "15z": {
+    "lmdb_key": "49086",
+    "ligand_filename": "TNKS2_HUMAN_948_1162_0/4bfp_A_rec_4hlf_15z_lig_tt_min_0.sdf"
+   },
+   "33c": {
+    "lmdb_key": "49162",
+    "ligand_filename": "TNKS2_HUMAN_948_1162_0/4bfp_A_rec_4tkf_33c_lig_tt_min_0.sdf"
+   },
+   "91f": {
+    "lmdb_key": "49208",
+    "ligand_filename": "TNKS2_HUMAN_948_1162_0/4bfp_A_rec_4bua_91f_lig_tt_min_0.sdf"
+   },
+   "15w": {
+    "lmdb_key": "49248",
+    "ligand_filename": "TNKS2_HUMAN_948_1162_0/4bfp_A_rec_4hl5_15w_lig_tt_min_0.sdf"
+   },
+   "1vg": {
+    "lmdb_key": "49275",
+    "ligand_filename": "TNKS2_HUMAN_948_1162_0/4bfp_A_rec_4l34_1vg_lig_tt_min_0.sdf"
+   },
+   "f94": {
+    "lmdb_key": "49276",
+    "ligand_filename": "TNKS2_HUMAN_948_1162_0/4bfp_A_rec_4hmh_f94_lig_tt_min_0.sdf"
+   },
+   "h2w": {
+    "lmdb_key": "49278",
+    "ligand_filename": "TNKS2_HUMAN_948_1162_0/4bfp_A_rec_4uvx_h2w_lig_tt_min_0.sdf"
+   },
+   "5ww": {
+    "lmdb_key": "49293",
+    "ligand_filename": "TNKS2_HUMAN_948_1162_0/4bfp_A_rec_4uvo_5ww_lig_tt_min_0.sdf"
+   },
+   "1ut": {
+    "lmdb_key": "49309",
+    "ligand_filename": "TNKS2_HUMAN_948_1162_0/4bfp_A_rec_4l0b_1ut_lig_tt_min_0.sdf"
+   },
+   "nnl": {
+    "lmdb_key": "49311",
+    "ligand_filename": "TNKS2_HUMAN_948_1162_0/4bfp_A_rec_3p0q_nnl_lig_tt_min_0.sdf"
+   },
+   "nnf": {
+    "lmdb_key": "50517",
+    "ligand_filename": "TNKS2_HUMAN_948_1162_0/4bfp_A_rec_3p0p_nnf_lig_tt_docked_15.sdf"
+   },
+   "8ir": {
+    "lmdb_key": "50520",
+    "ligand_filename": "TNKS2_HUMAN_948_1162_0/4bfp_A_rec_5aeh_8ir_lig_tt_docked_3.sdf"
+   },
+   "iwr": {
+    "lmdb_key": "50525",
+    "ligand_filename": "TNKS2_HUMAN_948_1162_0/4bfp_A_rec_3ua9_iwr_lig_tt_docked_0.sdf"
+   },
+   "swy": {
+    "lmdb_key": "50530",
+    "ligand_filename": "TNKS2_HUMAN_948_1162_0/4bfp_A_rec_4bfp_swy_lig_tt_docked_0.sdf"
+   }
+  }
+ },
+ "complex_000335": {
+  "target": "BGAT_HUMAN_63_353_0",
+  "receptor_stem": "1r7t_A_rec",
+  "own_ligcode": "48c",
+  "others": {
+   "da8": {
+    "lmdb_key": "5570",
+    "ligand_filename": "BGAT_HUMAN_63_353_0/1r7t_A_rec_5c1g_da8_lig_tt_min_0.sdf"
+   },
+   "nlc": {
+    "lmdb_key": "5608",
+    "ligand_filename": "BGAT_HUMAN_63_353_0/1r7t_A_rec_1zi3_nlc_lig_tt_min_0.sdf"
+   },
+   "bhe": {
+    "lmdb_key": "5651",
+    "ligand_filename": "BGAT_HUMAN_63_353_0/1r7t_A_rec_2riy_bhe_lig_tt_min_0.sdf"
+   },
+   "4ya": {
+    "lmdb_key": "5658",
+    "ligand_filename": "BGAT_HUMAN_63_353_0/1r7t_A_rec_5c4e_4ya_lig_tt_min_0.sdf"
+   },
+   "dr3": {
+    "lmdb_key": "5696",
+    "ligand_filename": "BGAT_HUMAN_63_353_0/1r7t_A_rec_1zi5_dr3_lig_tt_min_0.sdf"
+   },
+   "ad7": {
+    "lmdb_key": "5880",
+    "ligand_filename": "BGAT_HUMAN_63_353_0/1r7t_A_rec_2rj4_ad7_lig_tt_min_0.sdf"
+   }
+  }
+ },
+ "complex_000363": {
+  "target": "Y635_MYCTU_1_158_0",
+  "receptor_stem": "4rlt_A_rec",
+  "own_ligcode": "fse",
+  "others": {
+   "bun": {
+    "lmdb_key": "55389",
+    "ligand_filename": "Y635_MYCTU_1_158_0/4rlt_A_rec_4rlw_bun_lig_tt_min_0.sdf"
+   },
+   "hcc": {
+    "lmdb_key": "55393",
+    "ligand_filename": "Y635_MYCTU_1_158_0/4rlt_A_rec_4rlu_hcc_lig_tt_min_0.sdf"
+   }
+  }
+ },
+ "complex_000374": {
+  "target": "ABL2_HUMAN_274_551_0",
+  "receptor_stem": "2xyn_A_rec",
+  "own_ligcode": "1n1",
+  "others": {}
+ },
+ "complex_000376": {
+  "target": "ACE_HUMAN_650_1230_0",
+  "receptor_stem": "1uze_A_rec",
+  "own_ligcode": "mco",
+  "others": {
+   "nxa": {
+    "lmdb_key": "57002",
+    "ligand_filename": "ACE_HUMAN_650_1230_0/1uze_A_rec_2iux_nxa_lig_tt_min_0.sdf"
+   },
+   "lpr": {
+    "lmdb_key": "57033",
+    "ligand_filename": "ACE_HUMAN_650_1230_0/1uze_A_rec_1o86_lpr_lig_tt_docked_0.sdf"
+   },
+   "eal": {
+    "lmdb_key": "57035",
+    "ligand_filename": "ACE_HUMAN_650_1230_0/1uze_A_rec_1uze_eal_lig_tt_docked_1.sdf"
+   }
+  }
+ },
+ "complex_000382": {
+  "target": "AKT1_HUMAN_1_137_0",
+  "receptor_stem": "4ejn_A_rec",
+  "own_ligcode": "6s1",
+  "others": {}
+ },
+ "complex_000387": {
+  "target": "ATS5_HUMAN_262_480_0",
+  "receptor_stem": "3hy7_A_rec",
+  "own_ligcode": "294",
+  "others": {}
+ },
+ "complex_000394": {
+  "target": "BAPA_SPHXN_30_402_0",
+  "receptor_stem": "3n2w_A_rec",
+  "own_ligcode": "aes",
+  "others": {}
+ },
+ "complex_000400": {
+  "target": "CAT_ECOLX_1_219_0",
+  "receptor_stem": "1q23_C_rec",
+  "own_ligcode": "fua",
+  "others": {}
+ },
+ "complex_000403": {
+  "target": "CHIB1_ASPFM_39_433_0",
+  "receptor_stem": "3ch9_B_rec",
+  "own_ligcode": "tep",
+  "others": {
+   "xrg": {
+    "lmdb_key": "71365",
+    "ligand_filename": "CHIB1_ASPFM_39_433_0/3ch9_B_rec_3ch9_xrg_lig_tt_min_0.sdf"
+   },
+   "d1h": {
+    "lmdb_key": "71376",
+    "ligand_filename": "CHIB1_ASPFM_39_433_0/3ch9_B_rec_2iuz_d1h_lig_tt_docked_2.sdf"
+   }
+  }
+ },
+ "complex_000411": {
+  "target": "CHIB_SERMA_1_499_0",
+  "receptor_stem": "1h0i_A_rec",
+  "own_ligcode": "ngo",
+  "others": {}
+ },
+ "complex_000426": {
+  "target": "COAA_MYCTU_1_312_0",
+  "receptor_stem": "3avo_A_rec",
+  "own_ligcode": "pau",
+  "others": {
+   "paz": {
+    "lmdb_key": "74160",
+    "ligand_filename": "COAA_MYCTU_1_312_0/3avo_A_rec_3aez_paz_lig_tt_min_0.sdf"
+   }
+  }
+ },
+ "complex_000456": {
+  "target": "DFPA_LOLVU_2_314_0",
+  "receptor_stem": "2gvx_A_rec",
+  "own_ligcode": "di9",
+  "others": {}
+ },
+ "complex_000472": {
+  "target": "DIDH_RAT_1_319_0",
+  "receptor_stem": "1afs_A_rec",
+  "own_ligcode": "tes",
+  "others": {}
+ },
+ "complex_000473": {
+  "target": "GLMU_STRPN_2_459_0",
+  "receptor_stem": "4ac3_A_rec",
+  "own_ligcode": "r83",
+  "others": {}
+ },
+ "complex_000477": {
+  "target": "GSTP1_HUMAN_2_210_0",
+  "receptor_stem": "3gss_A_rec",
+  "own_ligcode": "gsh",
+  "others": {
+   "cbd": {
+    "lmdb_key": "95742",
+    "ligand_filename": "GSTP1_HUMAN_2_210_0/3gss_A_rec_20gs_cbd_lig_tt_min_0.sdf"
+   },
+   "gtx": {
+    "lmdb_key": "95882",
+    "ligand_filename": "GSTP1_HUMAN_2_210_0/3gss_A_rec_1pgt_gtx_lig_tt_min_0.sdf"
+   },
+   "gbx": {
+    "lmdb_key": "95889",
+    "ligand_filename": "GSTP1_HUMAN_2_210_0/3gss_A_rec_4pgt_gbx_lig_tt_min_0.sdf"
+   },
+   "lz6": {
+    "lmdb_key": "95892",
+    "ligand_filename": "GSTP1_HUMAN_2_210_0/3gss_A_rec_3csi_lz6_lig_tt_min_0.sdf"
+   },
+   "vww": {
+    "lmdb_key": "95980",
+    "ligand_filename": "GSTP1_HUMAN_2_210_0/3gss_A_rec_10gs_vww_lig_tt_docked_11.sdf"
+   }
+  }
+ },
+ "complex_000506": {
+  "target": "HDAC8_HUMAN_1_377_0",
+  "receptor_stem": "2v5x_A_rec",
+  "own_ligcode": "5ya",
+  "others": {}
+ },
+ "complex_000535": {
+  "target": "BSD_ASPTE_1_130_0",
+  "receptor_stem": "2z3h_A_rec",
+  "own_ligcode": "bst",
+  "others": {}
+ },
+ "complex_000540": {
+  "target": "HMD_METJA_1_358_0",
+  "receptor_stem": "3f46_A_rec",
+  "own_ligcode": "feg",
+  "others": {
+   "i2c": {
+    "lmdb_key": "97928",
+    "ligand_filename": "HMD_METJA_1_358_0/3f46_A_rec_3f46_i2c_lig_tt_docked_1.sdf"
+   }
+  }
+ }
+}
