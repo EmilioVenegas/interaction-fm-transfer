@@ -68,6 +68,10 @@ RDLogger.DisableLog("rdApp.*")
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)))
 
 SMINA_BIN = os.environ.get("SMINA_BIN", "smina")
+UNIDOCK_BIN = os.environ.get(
+    "UNIDOCK_BIN", str(Path.home() / ".conda/envs/unidock/bin/unidock"))
+OBABEL_BIN = os.environ.get(
+    "OBABEL_BIN", str(Path.home() / ".conda/envs/smina/bin/obabel"))
 
 
 def read_box(box_path):
@@ -141,6 +145,101 @@ def dock_one(args):
                     continue
                 value = mol.GetPropsAsDict().get("minimizedAffinity")
                 scores.append(float(value) if value is not None else float("nan"))
+    return pocket, receptor, scores
+
+
+def receptor_pdbqt(receptor_pdb, cache_dir):
+    """Uni-Dock will not read PDB, so each receptor is converted once and reused.
+
+    Converting per docking call instead would repeat the conversion 44 times per
+    receptor and put obabel on the critical path of a GPU run.
+    """
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    out = cache_dir / (Path(receptor_pdb).stem + ".pdbqt")
+    if not out.exists():
+        proc = subprocess.run([OBABEL_BIN, str(receptor_pdb), "-O", str(out), "-xr"],
+                              capture_output=True, text=True)
+        if proc.returncode != 0 or not out.exists():
+            raise RuntimeError(f"obabel failed on {receptor_pdb}:\n{proc.stderr[-1000:]}")
+    return out
+
+
+def read_unidock_score(path):
+    """Uni-Dock writes the Vina score as a pdbqt REMARK or an SDF property."""
+    path = Path(path)
+    if path.suffix == ".pdbqt":
+        for line in path.read_text().splitlines():
+            if line.startswith("REMARK VINA RESULT"):
+                return float(line.split()[3])
+        return float("nan")
+    for mol in Chem.SDMolSupplier(str(path), sanitize=False):
+        if mol is None:
+            continue
+        props = mol.GetPropsAsDict()
+        for key in ("Uni-Dock RESULT", "minimizedAffinity", "docking_score",
+                    "ENERGY", "Energy"):
+            if key in props:
+                try:
+                    return float(str(props[key]).split()[0])
+                except (ValueError, IndexError):
+                    pass
+    return float("nan")
+
+
+def dock_one_unidock(args, pdbqt_cache, max_gpu_mb=0):
+    """One GPU call for every molecule of one SDF against one receptor.
+
+    Unlike the smina path this is NOT run under a process pool: the batching is
+    where the speed comes from, and several processes contending for one 8 GB
+    card would serialise anyway while risking an out-of-memory kill.
+    """
+    sdf_path, receptor_pdb, box_path, pocket, receptor, exhaustiveness, seed = args
+    box = read_box(box_path)
+    mols = [m for m in Chem.SDMolSupplier(str(sdf_path), sanitize=True) if m is not None]
+    if not mols:
+        return pocket, receptor, []
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmpdir = Path(tmpdir)
+        lig_files = []
+        for i, mol in enumerate(mols):
+            one = tmpdir / f"m{i}.sdf"
+            writer = Chem.SDWriter(str(one))
+            writer.write(mol)
+            writer.close()
+            lig_files.append(one)
+        out_dir = tmpdir / "out"
+        out_dir.mkdir()
+
+        cmd = [UNIDOCK_BIN,
+               "--receptor", str(receptor_pdbqt(receptor_pdb, pdbqt_cache)),
+               "--gpu_batch", *[str(f) for f in lig_files],
+               "--dir", str(out_dir),
+               "--center_x", str(box["center_x"]),
+               "--center_y", str(box["center_y"]),
+               "--center_z", str(box["center_z"]),
+               "--size_x", str(box["size_x"]),
+               "--size_y", str(box["size_y"]),
+               "--size_z", str(box["size_z"]),
+               "--exhaustiveness", str(exhaustiveness),
+               "--num_modes", "1", "--seed", str(seed),
+               "--scoring", "vina", "--verbosity", "0"]
+        if max_gpu_mb:
+            cmd += ["--max_gpu_memory", str(max_gpu_mb)]
+        try:
+            proc = subprocess.run(cmd, capture_output=True, text=True, timeout=3600)
+        except subprocess.TimeoutExpired:
+            return pocket, receptor, [float("nan")] * len(mols)
+        if proc.returncode != 0:
+            return pocket, receptor, [float("nan")] * len(mols)
+
+        scores = []
+        for i in range(len(mols)):
+            hit = (list(out_dir.glob(f"m{i}_out.sdf"))
+                   or list(out_dir.glob(f"m{i}_out.pdbqt"))
+                   or list(out_dir.glob(f"m{i}.sdf"))
+                   or list(out_dir.glob(f"m{i}.pdbqt")))
+            scores.append(read_unidock_score(hit[0]) if hit else float("nan"))
     return pocket, receptor, scores
 
 
@@ -312,6 +411,12 @@ def main():
     p.add_argument("--exhaustiveness", type=int, default=8)
     p.add_argument("--n_jobs", type=int, default=4)
     p.add_argument("--seed", type=int, default=0)
+    p.add_argument("--engine", choices=("smina", "unidock"), default="smina",
+                   help="unidock runs the same Vina scoring function on the GPU; "
+                        "validate it with scripts/validate_unidock.py before "
+                        "trusting a number it produced")
+    p.add_argument("--max_gpu_mb", type=int, default=0,
+                   help="cap Uni-Dock's GPU use; 0 lets it take what it wants")
     args = p.parse_args()
 
     pdb_dir = Path(args.pdb_dir)
@@ -375,15 +480,25 @@ def main():
                   f"docking jobs ({1 + args.n_decoy_pockets} receptors each)")
 
             rows = []
-            with ProcessPoolExecutor(max_workers=args.n_jobs) as pool:
-                futures = [pool.submit(dock_one, pair) for pair in pairs]
-                for future in tqdm(as_completed(futures), total=len(futures),
-                                   desc=f"docking {name}"):
-                    pocket, receptor, scores = future.result()
+            if args.engine == "unidock":
+                pdbqt_cache = Path(tmpdir) / "receptors_pdbqt"
+                for pair in tqdm(pairs, desc=f"docking {name} (gpu)"):
+                    pocket, receptor, scores = dock_one_unidock(
+                        pair, pdbqt_cache, max_gpu_mb=args.max_gpu_mb)
                     for i, score in enumerate(scores):
                         rows.append({"arm": name, "pocket": pocket,
                                      "receptor": receptor, "mol_idx": i,
                                      "score": score})
+            else:
+                with ProcessPoolExecutor(max_workers=args.n_jobs) as pool:
+                    futures = [pool.submit(dock_one, pair) for pair in pairs]
+                    for future in tqdm(as_completed(futures), total=len(futures),
+                                       desc=f"docking {name}"):
+                        pocket, receptor, scores = future.result()
+                        for i, score in enumerate(scores):
+                            rows.append({"arm": name, "pocket": pocket,
+                                         "receptor": receptor, "mol_idx": i,
+                                         "score": score})
             raw_rows.extend(rows)
             arm_specificity[name] = per_pocket_specificity(rows)
 
