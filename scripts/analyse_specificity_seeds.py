@@ -217,9 +217,25 @@ def main():
             print(f"\n  Same-arm differences span "
                   f"{min(floor):+.3f} to {max(floor):+.3f}; the critic-vs-control "
                   f"difference is {d.mean():+.3f}.")
-            if abs(d.mean()) <= max(abs(np.array(floor))):
-                print("  It is inside the noise floor, so it is not evidence of "
-                      "an effect.")
+            print("\n  READ THIS BEFORE COMPARING THOSE TWO NUMBERS. They do not\n"
+                  "  have the same structure, and the difference flatters the\n"
+                  "  critic-vs-control result:\n"
+                  "\n"
+                  "    * same-arm, across seeds -- decoys are MATCHED. Every\n"
+                  "      replicate was given the identical rng stream so that only\n"
+                  "      the trained model differed, so critic_r0 and critic_r1 drew\n"
+                  "      the same decoy pockets. This floor therefore contains model\n"
+                  "      seed and molecule-subsample noise but NO decoy variance.\n"
+                  "    * critic-vs-control -- decoys are UNMATCHED in these runs, and\n"
+                  "      that term alone contributes sd ~0.078 to the mean.\n"
+                  "\n"
+                  "  So the floor bounds the seed and subsample terms (<= "
+                  f"{max(np.abs(floor)):.3f}), which is\n"
+                  "  useful, but it does NOT bound this comparison. Nor does the\n"
+                  "  agreement across seeds argue for a real effect: all three share\n"
+                  "  the same decoy assignment, so a decoy artefact would reproduce\n"
+                  "  exactly this consistently. Only the matched-decoy re-measurement\n"
+                  "  separates the two.")
 
         # What this design could have detected. A null is only informative if
         # the experiment had the power to see the effect it is nulling, which is
