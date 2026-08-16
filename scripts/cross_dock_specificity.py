@@ -165,25 +165,47 @@ def receptor_pdbqt(receptor_pdb, cache_dir):
 
 
 def read_unidock_score(path):
-    """Uni-Dock writes the Vina score as a pdbqt REMARK or an SDF property."""
+    """Uni-Dock writes the Vina score as a pdbqt REMARK or an SDF property.
+
+    Never raises. A ligand whose docking failed can leave an empty or truncated
+    file behind, and RDKit raises OSError rather than returning None on those --
+    which killed a validation run after 33 minutes of GPU work. One unreadable
+    ligand out of thousands is a NaN, exactly as a failed smina pair is.
+    """
     path = Path(path)
-    if path.suffix == ".pdbqt":
+    try:
+        if path.stat().st_size == 0:
+            return float("nan")
+        text_score = None
+        if path.suffix == ".pdbqt":
+            for line in path.read_text().splitlines():
+                if line.startswith("REMARK VINA RESULT"):
+                    return float(line.split()[3])
+            return float("nan")
+        # SDF: the score may be a tagged property or sit in the title block,
+        # depending on which writer Uni-Dock used.
+        for mol in Chem.SDMolSupplier(str(path), sanitize=False):
+            if mol is None:
+                continue
+            props = mol.GetPropsAsDict()
+            for key in ("Uni-Dock RESULT", "minimizedAffinity", "docking_score",
+                        "ENERGY", "Energy", "Score", "score"):
+                if key in props:
+                    try:
+                        return float(str(props[key]).split()[0])
+                    except (ValueError, IndexError):
+                        pass
+        # Last resort: scrape a REMARK-style line out of the raw text.
         for line in path.read_text().splitlines():
-            if line.startswith("REMARK VINA RESULT"):
-                return float(line.split()[3])
+            if "VINA RESULT" in line or "ENERGY=" in line:
+                for token in line.replace("=", " ").split():
+                    try:
+                        return float(token)
+                    except ValueError:
+                        continue
         return float("nan")
-    for mol in Chem.SDMolSupplier(str(path), sanitize=False):
-        if mol is None:
-            continue
-        props = mol.GetPropsAsDict()
-        for key in ("Uni-Dock RESULT", "minimizedAffinity", "docking_score",
-                    "ENERGY", "Energy"):
-            if key in props:
-                try:
-                    return float(str(props[key]).split()[0])
-                except (ValueError, IndexError):
-                    pass
-    return float("nan")
+    except (OSError, ValueError, RuntimeError):
+        return float("nan")
 
 
 def dock_one_unidock(args, pdbqt_cache, max_gpu_mb=0):

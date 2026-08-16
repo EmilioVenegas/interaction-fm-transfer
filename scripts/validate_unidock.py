@@ -119,26 +119,47 @@ def scores_from_sdf(path, prop):
 
 
 def read_unidock_score(path):
-    """Uni-Dock writes the Vina score into the output, as a pdbqt REMARK or an
-    SDF property depending on the output format it chose."""
+    """Uni-Dock writes the Vina score as a pdbqt REMARK or an SDF property.
+
+    Never raises. A ligand whose docking failed can leave an empty or truncated
+    file behind, and RDKit raises OSError rather than returning None on those --
+    which killed a validation run after 33 minutes of GPU work. One unreadable
+    ligand out of thousands is a NaN, exactly as a failed smina pair is.
+    """
     path = Path(path)
-    if path.suffix == ".pdbqt":
+    try:
+        if path.stat().st_size == 0:
+            return float("nan")
+        text_score = None
+        if path.suffix == ".pdbqt":
+            for line in path.read_text().splitlines():
+                if line.startswith("REMARK VINA RESULT"):
+                    return float(line.split()[3])
+            return float("nan")
+        # SDF: the score may be a tagged property or sit in the title block,
+        # depending on which writer Uni-Dock used.
+        for mol in Chem.SDMolSupplier(str(path), sanitize=False):
+            if mol is None:
+                continue
+            props = mol.GetPropsAsDict()
+            for key in ("Uni-Dock RESULT", "minimizedAffinity", "docking_score",
+                        "ENERGY", "Energy", "Score", "score"):
+                if key in props:
+                    try:
+                        return float(str(props[key]).split()[0])
+                    except (ValueError, IndexError):
+                        pass
+        # Last resort: scrape a REMARK-style line out of the raw text.
         for line in path.read_text().splitlines():
-            if line.startswith("REMARK VINA RESULT"):
-                return float(line.split()[3])
+            if "VINA RESULT" in line or "ENERGY=" in line:
+                for token in line.replace("=", " ").split():
+                    try:
+                        return float(token)
+                    except ValueError:
+                        continue
         return float("nan")
-    for mol in Chem.SDMolSupplier(str(path), sanitize=False):
-        if mol is None:
-            continue
-        props = mol.GetPropsAsDict()
-        for key in ("Uni-Dock RESULT", "minimizedAffinity", "docking_score",
-                    "ENERGY", "Energy"):
-            if key in props:
-                try:
-                    return float(str(props[key]).split()[0])
-                except (ValueError, IndexError):
-                    pass
-    return float("nan")
+    except (OSError, ValueError, RuntimeError):
+        return float("nan")
 
 
 def main():
@@ -150,6 +171,9 @@ def main():
     p.add_argument("--n_decoy", type=int, default=2)
     p.add_argument("--exhaustiveness", type=int, default=8)
     p.add_argument("--seed", type=int, default=0)
+    p.add_argument("--keep_tmp", default=None,
+                   help="write docking outputs here instead of a temp dir that "
+                        "is deleted on exception, so a failure can be diagnosed")
     p.add_argument("--max_gpu_mb", type=int, default=0,
                    help="cap Uni-Dock's GPU use; 0 lets it take what it wants")
     p.add_argument("--out", default="results/specificity/unidock_validation.csv")
@@ -171,7 +195,12 @@ def main():
     rng = np.random.default_rng(args.seed)
 
     rows, timing = [], {"smina": 0.0, "unidock": 0.0, "n": 0}
-    with tempfile.TemporaryDirectory() as tmp:
+    import contextlib
+    keep = Path(args.keep_tmp) if args.keep_tmp else None
+    if keep:
+        keep.mkdir(parents=True, exist_ok=True)
+    ctx = contextlib.nullcontext(str(keep)) if keep else tempfile.TemporaryDirectory()
+    with ctx as tmp:
         tmp = Path(tmp)
         for sdf in sdfs:
             pocket = sdf.stem
