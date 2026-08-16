@@ -27,10 +27,26 @@ Sentinels in the order they should appear: `DOCK_R2_DONE`,
 | 4 | Uni-Dock validation vs smina | GPU | ~03:00 | `unidock_pipeline.sh` |
 | 5 | λ20 cross-docking vs control_r0, smina | 16 cores | ~07:15 | `lambda20.sh` |
 | 6 | r0 matched-decoy re-measurement, smina | 28 cores | ~09:45 | `dock_r0_matched.sh` |
-| 7 | Uni-Dock full re-dock, **all molecules**, 7 arms | GPU | only if 4 passes | `unidock_pipeline.sh` |
+| 7 | Uni-Dock full re-dock, **all molecules**, 7 arms | GPU | see below | `unidock_pipeline.sh` |
 
-Steps 2–3 and 5–6 are sequential on purpose: one 8 GB card, and the smina runs
-would otherwise fight each other for cores.
+Steps 2–3 are sequential on purpose: one 8 GB card.
+
+**Steps 5 and 6 may be cancelled automatically.** The Uni-Dock full run in step 7
+supersedes both — it covers all seven arms with matched decoys and every
+molecule — so if Uni-Dock works, they are wasted cores *and* they delay step 7
+by about seven hours. But whether it works is not known until step 4 runs at
+~03:00, so the decision is deferred to that moment rather than guessed now:
+
+- gate fails → steps 5 and 6 proceed untouched and are the record;
+- gate passes but Uni-Dock is too slow to afford more than 20 molecules per
+  pocket → steps 5 and 6 are kept, since the switch would buy nothing;
+- gate passes and the full molecule set fits in ~8 h → steps 5 and 6 are
+  killed, `SMINA_FALLBACK_ABANDONED` is written, and step 7 starts immediately.
+
+The molecule cap is chosen from the *measured* throughput, taking the largest of
+{all, 60, 40, 20} that fits. r2's docking (step 1) is never cancelled: it is
+nearly finished and it completes the three-seed set on the same harness r0 and
+r1 used, which is what that internal comparison needs.
 
 ## What each step answers
 

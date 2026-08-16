@@ -290,6 +290,21 @@ def main():
     for text, passed in checks:
         print(f"  [{'PASS' if passed else 'FAIL'}] {text}")
     passed = all(c[1] for c in checks)
+    # Written for the driver, which has to decide whether to abandon the smina
+    # fallback. That decision needs the measured throughput, not just the gate:
+    # a Uni-Dock that agrees perfectly but is only 3x faster does not make the
+    # full molecule set affordable, and killing the fallback for it would be a
+    # net loss.
+    sec_per_dock = timing["unidock"] / timing["n"] if timing["n"] else float("nan")
+    Path(out).with_suffix(".json").write_text(json.dumps({
+        "passed": bool(passed),
+        "speedup_vs_one_smina_core": float(speed),
+        "unidock_sec_per_molecule": float(sec_per_dock),
+        "smina_sec_per_molecule": float(timing["smina"] / timing["n"]) if timing["n"] else None,
+        "n_dockings": int(timing["n"]),
+        "mean_abs_specificity_disagreement": float(np.abs(d).mean()),
+        "spearman": float(ok.smina.corr(ok.unidock, method="spearman")),
+    }, indent=2))
     print("\n" + ("Uni-Dock may replace smina for this measurement."
                   if passed else
                   "Do NOT switch: keep smina and report the bound it gives."))
