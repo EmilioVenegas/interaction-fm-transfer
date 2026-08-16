@@ -1,0 +1,202 @@
+# LAMBDA SWEEP ARM: the same critic at 20x the calibrated weight.
+#
+# Three seeds of the critic at max_weight 0.7 came out as a null on every axis
+# measured (results/critic_arms/README.md): the critic does not reduce its own
+# objective against a matched control (sign flips across seeds), the diffusion
+# loss is unchanged, the guardrails are unchanged, and pocket specificity does
+# not move. That is a null about the DOSE, not about the method. The calibrated
+# weight gives the critic ~10% of the gradient in the band it is applied to, and
+# the ramp applies it to only the ~25% of samples under the cutoff -- roughly
+# 2.5% of the gradient over training. Nothing should be concluded about the
+# method from a term that small.
+#
+# This arm answers the question that leaves open. At 20x, the critic takes
+# roughly twice the diffusion term's gradient in the low-noise band, which is
+# past the point where it should be visible in loss_diffusion/val if it acts at
+# all. Both outcomes are useful: if the diffusion loss degrades and specificity
+# still does not move, the negative upgrades from "we applied 2.5% of a
+# gradient" to "even at a dose that damages sample quality, the ATOMICA critic
+# buys no pocket specificity". If something moves, the earlier nulls were a dose
+# artefact and this is the finding.
+#
+# Its control is the existing critic_control_* arms: the control has no critic
+# term at all, so it is lambda-independent and does not need re-running. Three
+# control seeds also give the control's own run-to-run spread to judge against.
+#
+run_name: 'critic_lambda20_r0'
+seed: 0
+logdir: './my_logs'
+wandb_params:
+  mode: 'offline'
+  entity: 'emiliovenegas10-tecnol-gico-de-monterrey'
+  group: 'atomica-crossdocked'
+  project: 'atomica-enhanced'
+
+dataset: 'crossdock'
+datadir: 'data/processed_expert_atomica'
+enable_progress_bar: True
+num_sanity_val_steps: 0
+
+mode: 'pocket_conditioning'
+pocket_representation: 'full-atom'
+
+# --- ATOMICA as a training-time critic ---
+#
+#   L = L_diffusion + lambda(t) * d( ATOMICA(pocket, x0_hat), ATOMICA(pocket, x_true) )
+#
+# This is NOT the conditioning adapter of arms B/C/D. ATOMICA is a frozen
+# teacher in the loss only: it sees the true ligand as a *label*, never as an
+# input, so sampling needs no ATOMICA at all and cannot be bottlenecked by the
+# cross-system transfer that Phase 2 resolved as negative
+# (docs/experiment-plan.md).
+#
+# The conditioning adapter is therefore switched OFF here (egnn_params.atomica_nf
+# is null) and the pretrained backbone stays frozen; LoRA on the EGNN is what the
+# critic's gradient updates. The control arm is this same config with
+# critic_params.enabled False, so the two differ only in the objective.
+#
+# Requires scripts/add_critic_targets.py to have been run over the data
+# directory; complexes without cached critic fields train on the diffusion loss
+# alone.
+# The critic holds ATOMICA's forward graph for backprop, on top of the EGNN's.
+# On an 8 GB card, batch_size 4 without gradient checkpointing OOMs during the
+# critic's encoder pass; batch_size 2 with checkpointing (below) fits. If you
+# raise this, raise accumulate_grad_batches instead.
+batch_size: 2
+accumulate_grad_batches: 16       # effective batch = 32
+lr: 1.0e-5
+adapter_lr: 1.0e-4
+freeze_backbone: True
+n_epochs: 50
+# A FIXED budget, shared by both arms, rather than early stopping. Two arms that
+# stop at different points have had different amounts of optimisation, which
+# confounds a comparison of objectives with a comparison of training length.
+# 3,000 optimiser steps at effective batch 32 is ~96,000 samples, a little over
+# one epoch of the 83,921-complex train split, and ~4.8 h on an RTX 4060.
+max_steps: 3000
+early_stop_patience: 0
+val_check_interval: 1000          # batches, i.e. every ~62 optimiser steps
+limit_val_batches: 50             # of 250; keeps validation ~20 s
+
+# `loss/val` INCLUDES the critic term when the critic is on, so monitoring it
+# would judge the critic arm and its control on different quantities and select
+# their best checkpoints against different objectives. loss_diffusion/val is the
+# diffusion objective alone and is logged by both arms.
+monitor: 'loss_diffusion/val'
+
+noise_factor: 1.0
+num_workers: 8
+gpus: 1
+clip_grad: True
+augment_rotation: False
+augment_noise: 0
+precision: bf16-mixed
+compile: false
+
+auxiliary_loss: False
+loss_params:
+  max_weight: 0.001
+  schedule: 'linear'
+  clamp_lj: 3.0
+
+critic_params:
+  enabled: True
+  model_config: 'ATOMICA/pretrain/pretrain_model_config.json'
+  model_weights: 'ATOMICA/pretrain/pretrain_model_weights.pt'
+  # 'cosine' on the graph representation: the featurization probe found the
+  # graph level least degenerate for genuine two-segment records, and the
+  # sanity gate measures its ordering against RMSD before any training.
+  distance: 'cosine'
+  level: 'graph'
+  # lambda at t = 0, calibrated by gradient norm rather than by loss magnitude
+  # (scripts/calibrate_critic_weight.py, 48 batches over val, THIS config).
+  # Comparing the two *losses* answers the wrong question: cosine distance on a
+  # 32-d representation is order 1e-2 while the diffusion nll is order 1e0, so
+  # the loss ratio makes the critic look negligible at a lambda that would
+  # actually dominate. What matters is the gradient each term contributes:
+  #
+  #     ||grad|| diffusion              1.61e-01
+  #     ||grad|| critic (at lambda=1)   9.79e-02      median ratio 1.9
+  #
+  # The ratio depends strongly on WHAT IS TRAINABLE, so this must be recomputed
+  # whenever that changes. Measured against arm B's architecture with the
+  # ATOMICA adapter as the trainable path, the same script gave a ratio of 108
+  # and suggested lambda 50; with LoRA on the EGNN's feature and coordinate
+  # MLPs the critic's gradient reaches the parameters far more directly and the
+  # ratio falls to 1.9. Carrying the old figure over would have made the critic
+  # roughly 240x too strong.
+  #
+  # By noise level (the ramp concentrates the term in the low band):
+  #     t/T <= 0.25    median ratio 6.2   -> lambda 0.688 for a 10% share
+  #     0.25-0.5       median ratio 1.6   -> lambda 0.175
+  #     t/T > 0.5      median ratio 2.0   -> lambda 0.218
+  #
+  # 0.7 gives the critic roughly a tenth of the gradient in the band it is
+  # applied to. Sweep 0.2-2.0 and confirm critic_distance/train actually falls;
+  # these are norms at the initial parameters, not a claim about dynamics.
+  # 20x the calibrated 0.7. See the header: this arm exists to separate a
+  # null about the method from a null about the dose.
+  max_weight: 14.0
+  # 'ramp' decays linearly to zero at cutoff*T; 'cutoff' is a hard switch;
+  # 'constant' is the ablation. Restricting to low t is not a tuning choice --
+  # ATOMICA has never seen a half-formed ligand, and the round-trip test shows
+  # the distance saturating and turning over once the ligand leaves the pocket,
+  # so gradients taken at high noise can point the wrong way.
+  schedule: 'ramp'
+  cutoff: 0.25
+
+egnn_params:
+  device: 'cuda'
+  edge_cutoff_ligand: null
+  edge_cutoff_pocket: 5.0
+  edge_cutoff_interaction: 5.0
+  reflection_equivariant: False
+  # These MUST match checkpoints/crossdocked_fullatom_cond.ckpt, which this arm
+  # fine-tunes from. Arm B's config used joint_nf 128 / hidden_nf 256 /
+  # n_layers 6, which does not load into that checkpoint -- every layer comes
+  # back a size mismatch. train.py --resume merges the checkpoint's own
+  # egnn_params and would correct this silently; they are written out here so
+  # the config is self-consistent on its own.
+  joint_nf: 32
+  hidden_nf: 128
+  n_layers: 5
+  attention: True
+  tanh: True
+  norm_constant: 1
+  inv_sublayers: 1
+  sin_embedding: False
+  aggregation_method: 'sum'
+  normalization_factor: 100
+  # ATOMICA conditioning adapter OFF. This is deliberate and load-bearing.
+  # The cached pocket_atomica_embeddings are read off a two-segment encoding
+  # whose segment 1 is the reference ligand, so feeding them to the model as an
+  # input would leak the ground truth at sampling time; and recomputing them
+  # pocket-only would be both a train/test mismatch and degenerate (cosine
+  # 1.0000 between pockets, results/featurization_probe). The critic uses
+  # ATOMICA as a training-time teacher instead, so the sampler is pure DiffSBDD
+  # and needs no ATOMICA at all.
+  atomica_nf: null
+  # With the adapter off and the backbone frozen, LoRA is what the critic's
+  # gradient updates. Rank 8 on the EGNN's edge/node/coord MLPs.
+  lora_rank: 8
+  lora_alpha: 16
+  lora_dropout: 0.0
+  timestep_adaptive: False
+  gradient_checkpointing: True    # required for RTX 4060 8GB with full-atom pockets
+
+diffusion_params:
+  diffusion_steps: 500
+  diffusion_noise_schedule: 'polynomial_2'
+  diffusion_noise_precision: 5.0e-4
+  diffusion_loss_type: 'l2'
+  normalize_factors: [1, 4]
+
+eval_epochs: 5
+visualize_sample_epoch: 10
+visualize_chain_epoch: 50
+eval_params:
+  n_eval_samples: 50
+  eval_batch_size: 50
+  smiles_file: 'data/crossdocked_smiles.npy'
+  n_visualize_samples: 3
+  keep_frames: 100
